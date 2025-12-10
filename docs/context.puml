@@ -1,0 +1,34 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+SHOW_PERSON_OUTLINE()
+
+Person(customer, "Customer", "Заказчик")
+Person(builder, "Builder", "Строитель/специалист")
+Person(admin, "Admin", "Администратор")
+
+System_Boundary(sys, "IJS Construction Platform") {
+  System(core, "Core Backend Services", "Project, Building, Documents, Chat, Notifications")
+  System(frontend, "Web PWA", "Frontend")
+}
+
+System_Ext(keycloak, "Keycloak", "Auth Server (OAuth 2.0 / OIDC)")
+System_Ext(pay, "E-sign Provider", "Crypto-Pro / Mock e-signature")
+System_Ext(email, "Email Server", "SMTP")
+System_Ext(sms, "SMS Provider", "Twilio / Mock")
+System_Ext(push, "Push Provider", "FCM or mock")
+
+Rel(customer, frontend, "Использует", "HTTPS")
+Rel(builder, frontend, "Использует", "HTTPS")
+Rel(admin, keycloak, "Управляет", "Web Admin UI")
+
+Rel(frontend, keycloak, "Login / Tokens", "OIDC")
+Rel(frontend, core, "REST / WebSocket", "через API Gateway")
+
+Rel(core, keycloak, "Проверяет токены", "JWT / Introspection")
+Rel(core, pay, "Подписывает документы", "REST")
+Rel(core, email, "Шлёт письма", "SMTP")
+Rel(core, sms, "Шлёт SMS", "REST")
+Rel(core, push, "Шлёт push", "REST")
+
+@enduml
