@@ -1,0 +1,28 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: chat-service
+  liquibase:
+    change-log: classpath:/db/changelog.yaml
+    user: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}
+  r2dbc:
+    pool:
+      initial-size: 10
+      max-size: 30
+      max-idle-time: 179s
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}
+  jackson:
+    deserialization:
+      USE_BIG_DECIMAL_FOR_FLOATS: true
+
+logging:
+  pattern:
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr([callId=%X{callId} methodName=%X{methodName} initiatorHost=%X{initiatorHost} initiatorService=%X{initiatorService} messageType=%X{messageType}]){magenta} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+  level:
+    root: ${ROOT_LOGGING_LEVEL:info}
