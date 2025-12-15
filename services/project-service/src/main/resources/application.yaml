@@ -1,0 +1,18 @@
+spring:
+  application.name: project-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/projects
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    user: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+logging:
+  level:
+    liquibase: DEBUG

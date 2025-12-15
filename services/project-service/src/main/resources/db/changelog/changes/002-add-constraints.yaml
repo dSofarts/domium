@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-constraints
+      author: kirill
+      changes:
+        # --- project_images
+        - addForeignKeyConstraint:
+            baseTableName: project_images
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            constraintName: fk_project_images_projects
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+              constraintName: fk_floors_projects
+              baseTableName: floors
+              baseColumnNames: project_id
+              referencedTableName: projects
+              referencedColumnNames: id
+              onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+              constraintName: fk_rooms_projects
+              baseTableName: rooms
+              baseColumnNames: floor_id
+              referencedTableName: floors
+              referencedColumnNames: id
+              onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: project_images
+            columnNames: project_id, image_url
+            constraintName: uq_project_images_project_url
+
+        # --- project_orders
+        - addForeignKeyConstraint:
+            baseTableName: project_orders
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            constraintName: fk_project_orders_projects
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: order_assignments
+            baseColumnNames: project_order_id
+            referencedTableName: project_orders
+            referencedColumnNames: id
+            constraintName: fk_order_assignments_project_orders
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: order_assignments
+            columnNames: project_order_id, user_id, role
+            constraintName: uq_order_assignments_order_user_role

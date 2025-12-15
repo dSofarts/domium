@@ -1,3 +1,5 @@
 CREATE DATABASE keycloak;
 
 CREATE DATABASE building;
+
+CREATE DATABASE projects;
