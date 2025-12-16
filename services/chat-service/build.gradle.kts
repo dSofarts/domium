@@ -1,56 +1,98 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "3.5.8"
-    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version Version.KOTLIN
+    kotlin("kapt") version Version.KOTLIN
+    kotlin("plugin.spring") version Version.KOTLIN
+
+    id("org.springframework.boot") version Version.SPRING_BOOT
+    id("io.spring.dependency-management") version Version.SPRING_DEPENDENCY
+
+    id("org.jlleitschuh.gradle.ktlint") version Version.KTLINT
 }
 
-group = "ru.domium"
-version = "0.0.1-SNAPSHOT"
-description = "chat-service"
+apply(from = "repositories.gradle.kts")
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+subprojects {
+    val module = RootProject.moduleByName(name)
+
+    group = module.group
+    version = module.version
+
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jetbrains.kotlin.kapt")
+    apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+    apply(plugin = "org.springframework.boot")
+    apply(plugin = "io.spring.dependency-management")
+
+    apply(from = "$rootDir/repositories.gradle.kts")
+
+    tasks.withType<Jar> {
+        manifest { attributes("Implementation-Version" to VERSION) }
+    }
+
+    tasks.withType<Test> {
+        @Suppress("UnstableApiUsage")
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+        jvmArgs =
+            mutableListOf(
+                "-Djava.net.preferIPv4Stack=true",
+                "--add-opens",
+                "java.base/java.util=ALL-UNNAMED",
+            )
+    }
+
+    val javaVersion = JavaVersion.VERSION_21
+    tasks.withType<KotlinCompile> {
+        compilerOptions {
+            freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+            jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(javaVersion.toString()))
+        }
+    }
+
+    dependencies {
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("io.projectreactor:reactor-test")
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+        testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+        testImplementation("io.mockk:mockk:1.14.2")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
-repositories {
-    mavenCentral()
-}
+configure(subprojects.filter { it.name != RootProject.API.name }) {
+    dependencies {
+        kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("io.github.oshai:kotlin-logging:7.0.13")
-
-    implementation("org.liquibase:liquibase-core")
-    implementation("org.postgresql:r2dbc-postgresql")
-
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
-    runtimeOnly("org.postgresql:postgresql")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-r2dbc-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        implementation("io.github.oshai:kotlin-logging:${Version.LOGGING}")
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+        implementation("com.google.guava:guava:33.4.8-jre")
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+configure(subprojects) {
+    @Suppress("UnstableApiUsage")
+    tasks.register<Jar>("sourcesJar") {
+        archiveClassifier.set("sources")
+        from(sourceSets.main.get().allSource)
+    }
+}
+
+configure(subprojects.filter { it.name != RootProject.MAIN.name }) {
+    tasks.named("bootJar") {
+        enabled = false
+    }
+}
+
+tasks.bootJar {
+    mainClass.set("ru.domium.chat.ChatServiceApplicationKt")
 }
