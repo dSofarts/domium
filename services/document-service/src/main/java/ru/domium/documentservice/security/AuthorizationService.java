@@ -11,7 +11,7 @@ public class AuthorizationService {
 
   public void assertCanReadDocument(Authentication auth, DocumentInstance doc) {
     if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_PROVIDER") || hasRole(auth, "ROLE_ADMIN")) return;
+    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
     UUID uid = UserContext.userId(auth);
     if (uid == null || doc.getUserId() == null || !uid.equals(doc.getUserId())) {
       throw ApiExceptions.forbidden("Access denied");
@@ -20,7 +20,7 @@ public class AuthorizationService {
 
   public void assertCanReadProject(Authentication auth, UUID projectId, UUID userIdInDoc) {
     if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_PROVIDER") || hasRole(auth, "ROLE_ADMIN")) return;
+    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
     UUID uid = UserContext.userId(auth);
     if (uid == null || userIdInDoc == null || !uid.equals(userIdInDoc)) {
       throw ApiExceptions.forbidden("Access denied");
@@ -29,8 +29,8 @@ public class AuthorizationService {
 
   public void assertProvider(Authentication auth) {
     if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_PROVIDER") || hasRole(auth, "ROLE_ADMIN")) return;
-    throw ApiExceptions.forbidden("Provider role required");
+    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
+    throw ApiExceptions.forbidden("Builder role required");
   }
 
   private boolean hasRole(Authentication auth, String role) {

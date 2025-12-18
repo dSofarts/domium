@@ -75,7 +75,7 @@ public class ProjectDocumentsController {
                                        @RequestParam(required = false) DocumentGroupType groupType,
                                        Authentication authentication) {
     boolean isProvider = authentication.getAuthorities().stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_PROVIDER") || a.getAuthority().equals("ROLE_ADMIN"));
+        .anyMatch(a -> a.getAuthority().equals("ROLE_BUILDER") || a.getAuthority().equals("ROLE_ADMIN"));
     List<DocumentInstance> docs;
     if (isProvider) {
       docs = workflow.listProjectDocuments(projectId, status, stage, groupType);

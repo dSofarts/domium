@@ -32,7 +32,7 @@ public class OpenApiConfig {
                 - управление документами
                 - версии файлов
                 - подписание и отклонение
-                - роли USER / BUILDER / ADMIN
+                - роли CLIENT / BUILDER / ADMIN
                 """)
         .version("1.0.0");
   }

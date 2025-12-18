@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -227,7 +226,7 @@ public class DocumentWorkflowService {
     doc.setSignedAt(Instant.now());
     docRepo.save(doc);
 
-    audit(doc, ActorType.USER, signerUserId, AuditAction.SIGNED,
+    audit(doc, ActorType.CLIENT, signerUserId, AuditAction.SIGNED,
         json("signatureType", signatureType.name(), "fileHash", hash));
     documentsSigned.increment();
     return signature;
@@ -252,9 +251,9 @@ public class DocumentWorkflowService {
       c.setAuthorId(userId);
       c.setText(comment);
       commentRepo.save(c);
-      audit(doc, ActorType.USER, userId, AuditAction.COMMENT_ADDED, json("text", comment));
+      audit(doc, ActorType.CLIENT, userId, AuditAction.COMMENT_ADDED, json("text", comment));
     }
-    audit(doc, ActorType.USER, userId, AuditAction.REJECTED, json());
+    audit(doc, ActorType.CLIENT, userId, AuditAction.REJECTED, json());
     documentsRejected.increment();
   }
 
@@ -281,7 +280,7 @@ public class DocumentWorkflowService {
     fv.setDocument(doc);
     fv.setVersion(nextVersion);
     fv.setFileStorageId(fileId);
-    fv.setCreatedByType(ActorType.PROVIDER);
+    fv.setCreatedByType(ActorType.BUILDER);
     fv.setCreatedById(providerId);
     versionRepo.save(fv);
 
@@ -298,12 +297,12 @@ public class DocumentWorkflowService {
       c.setAuthorId(providerId);
       c.setText(comment);
       commentRepo.save(c);
-      audit(doc, ActorType.PROVIDER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
+      audit(doc, ActorType.BUILDER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
     }
 
-    audit(doc, ActorType.PROVIDER, providerId, AuditAction.VERSION_UPDATED,
+    audit(doc, ActorType.BUILDER, providerId, AuditAction.VERSION_UPDATED,
         json("version", nextVersion));
-    audit(doc, ActorType.PROVIDER, providerId, AuditAction.SENT,
+    audit(doc, ActorType.BUILDER, providerId, AuditAction.SENT,
         json("reason", "new-version-uploaded"));
     return doc;
   }
@@ -361,12 +360,12 @@ public class DocumentWorkflowService {
     fv.setDocument(doc);
     fv.setVersion(1);
     fv.setFileStorageId(fileId);
-    fv.setCreatedByType(ActorType.PROVIDER);
+    fv.setCreatedByType(ActorType.BUILDER);
     fv.setCreatedById(providerId);
     versionRepo.save(fv);
 
-    audit(doc, ActorType.PROVIDER, providerId, AuditAction.MANUAL_UPLOADED, json("title", title));
-    audit(doc, ActorType.PROVIDER, providerId, AuditAction.SENT, json("reason", "manual-upload"));
+    audit(doc, ActorType.BUILDER, providerId, AuditAction.MANUAL_UPLOADED, json("title", title));
+    audit(doc, ActorType.BUILDER, providerId, AuditAction.SENT, json("reason", "manual-upload"));
     return doc;
   }
 

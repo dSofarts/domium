@@ -98,8 +98,8 @@ public class DocumentController {
     var doc = workflow.getDocument(documentId);
     authz.assertCanReadDocument(authentication, doc);
 
-    ActorType actorType = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PROVIDER") || a.getAuthority().equals("ROLE_ADMIN"))
-        ? ActorType.PROVIDER : ActorType.USER;
+    ActorType actorType = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_BUILDER") || a.getAuthority().equals("ROLE_ADMIN"))
+        ? ActorType.BUILDER : ActorType.CLIENT;
     UUID actorId = UserContext.userId(authentication);
 
     InputStream is = workflow.loadDocumentFile(documentId, markViewed, actorType, actorId);
