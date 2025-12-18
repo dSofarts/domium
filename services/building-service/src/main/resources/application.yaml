@@ -3,7 +3,19 @@ server:
 
 spring:
   application:
-    name: building-service
+    name: buildings
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
+        ip-address: ${HOSTNAME:buildings}
+        port: ${server.port}
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:building}
     username: ${POSTGRES_USER:postgres}
@@ -51,3 +63,13 @@ management:
     metrics:
       export:
         enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
