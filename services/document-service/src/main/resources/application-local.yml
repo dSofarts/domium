@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: document-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/document
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: document
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: document
+    liquibase-schema: document
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/document-realm/protocol/openid-connect/certs
+
+server:
+  port: 8092
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: document-service
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: admin
+  secret-key: adminadmin
+  buckets:
+    templates: templates
+    documents: documents
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+

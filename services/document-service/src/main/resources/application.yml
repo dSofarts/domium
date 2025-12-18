@@ -1,0 +1,65 @@
+server:
+  port: ${DOCUMENT_PORT:8092}
+
+spring:
+  application:
+    name: document-service
+
+  datasource:
+    url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${DOCUMENT_POSTGRES_DB:document}
+    username: ${DOCUMENT_POSTGRES_USER:postgres}
+    password: ${DOCUMENT_POSTGRES_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: document
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: document
+    liquibase-schema: document
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:${KEYCLOAK_PORT:8080}/realms/document-realm
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+minio:
+  endpoint: http://minio:${MINIO_API_PORT:9000}
+  access-key: ${MINIO_ROOT_USER}
+  secret-key: ${MINIO_ROOT_PASSWORD}
+  buckets:
+    documents: documents
+    templates: templates
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha

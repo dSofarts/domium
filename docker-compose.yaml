@@ -139,10 +139,10 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     container_name: keycloak
-    command: start-dev --metrics-enabled=true --import-realm
+    command: start-dev --metrics-enabled=true
     ports:
-      - "${KEYCLOAK_PORT:-8081}:8080"
-      - "${KEYCLOAK_HEALTH_PORT:-9000}:9000"
+      - "${KEYCLOAK_PORT}:8080"
+      - "${KEYCLOAK_HEALTH_PORT}:9000"
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -287,11 +287,28 @@ services:
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
 
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "${REDIS_INSIGHT_PORT}:5540"
+    volumes:
+      - redis_insight_data:/data
+
   building-service:
     image: building-service:latest
     container_name: building-service
     ports:
-      - "${BUILDING_PORT}:8091"
+      - "${BUILDING_PORT}:8090"
       - "5005:5005"
     build:
       context: ./services/building-service
@@ -304,13 +321,11 @@ services:
       POSTGRES_PASSWORD: ${BUILDING_POSTGRES_PASSWORD}
       KAFKA_HOST: kafka
       KAFKA_PORT: 9092
-      CONSUL_HOST: consul
-      CONSUL_PORT: 8500
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
-      consul:
-        condition: service_healthy
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 #      kafka:
 #        condition: service_healthy
@@ -320,10 +335,33 @@ services:
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
 
+  document-service:
+    image: document-service:latest
+    container_name: document-service
+    build:
+      context: ./services/document-service
+    ports:
+      - "${DOCUMENT_PORT}:8092"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DOCUMENT_PORT: 8092
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
 volumes:
   grafana-storage:
   minio_data:
   postgres_data:
   kafka_data:
   redis_insight_data:
-  consul_data:
