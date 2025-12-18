@@ -54,6 +54,10 @@ databaseChangeLog:
                   name: description
                   type: TEXT
               - column:
+                  name: publication_status
+                  type: VARCHAR(50) # DRAFT, PUBLISHED, PUBLISH_FAILED
+                  defaultValue: DRAFT
+              - column:
                   name: created_at
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
@@ -123,14 +127,13 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: image_url
+                  name: storage_object_key
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
-                  name: is_main
-                  type: BOOLEAN
-                  defaultValueBoolean: false
+                  name: position
+                  type: INTEGER
         - createTable:
             tableName: project_orders
             columns:
@@ -153,12 +156,13 @@ databaseChangeLog:
               - column:
                   name: status
                   type: VARCHAR(50) # NEW, PENDING, STAGES..., DONE, CANCELED
+                  defaultValue: PENDING
               - column:
                   name: created_at
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
         - createTable:
-            tableName: order_assignments
+            tableName: order_participants
             columns:
               - column:
                   name: id
@@ -175,7 +179,7 @@ databaseChangeLog:
                   name: user_id
                   type: UUID
               - column:
-                  name: role
+                  name: participantRole
                   type: VARCHAR(50) # ARCHITECT, MANAGER, WORKER
               - column:
                   name: assigned_at

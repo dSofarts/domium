@@ -12,6 +12,22 @@ databaseChangeLog:
             constraintName: fk_project_images_projects
             onDelete: CASCADE
 
+        - addUniqueConstraint:
+            tableName: project_images
+            columnNames: project_id, image_url
+            constraintName: uq_project_images_project_image_url
+
+        - addUniqueConstraint:
+            tableName: project_images
+            columnNames: project_id, position
+            constraintName: uq_project_images_project_image_position
+
+        - addCheckConstraint:
+            tableName: project_images
+            constraintName: chk_project_images_position_non_negative
+            constraintBody: position >= 0
+
+        # --- floors
         - addForeignKeyConstraint:
               constraintName: fk_floors_projects
               baseTableName: floors
@@ -20,6 +36,7 @@ databaseChangeLog:
               referencedColumnNames: id
               onDelete: CASCADE
 
+        # --- rooms
         - addForeignKeyConstraint:
               constraintName: fk_rooms_projects
               baseTableName: rooms
@@ -27,11 +44,6 @@ databaseChangeLog:
               referencedTableName: floors
               referencedColumnNames: id
               onDelete: CASCADE
-
-        - addUniqueConstraint:
-            tableName: project_images
-            columnNames: project_id, image_url
-            constraintName: uq_project_images_project_url
 
         # --- project_orders
         - addForeignKeyConstraint:
@@ -43,14 +55,14 @@ databaseChangeLog:
             onDelete: CASCADE
 
         - addForeignKeyConstraint:
-            baseTableName: order_assignments
+            baseTableName: order_participants
             baseColumnNames: project_order_id
             referencedTableName: project_orders
             referencedColumnNames: id
-            constraintName: fk_order_assignments_project_orders
+            constraintName: fk_order_participants_project_orders
             onDelete: CASCADE
 
         - addUniqueConstraint:
-            tableName: order_assignments
+            tableName: order_participants
             columnNames: project_order_id, user_id, role
-            constraintName: uq_order_assignments_order_user_role
+            constraintName: uq_order_participants_order_user_role

@@ -18,6 +18,7 @@ import java.util.UUID;
 @Builder
 public class Project {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
@@ -45,6 +46,12 @@ public class Project {
 
     @Column(name = "description")
     private String description;
+
+//    @Column(name = "likes", nullable = false)
+//    private Integer likes;
+
+    @Column(name = "publication_status", nullable = false)
+    private ProjectPublicationStatus publicationStatus;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;

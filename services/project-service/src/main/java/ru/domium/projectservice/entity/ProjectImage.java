@@ -20,15 +20,15 @@ import java.util.UUID;
 @Builder
 public class ProjectImage {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @ManyToOne(optional = false)
     private Project project;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "storage_object_key", nullable = false)
+    private String storageObjectKey;
 
-    @Column(name = "is_main", nullable = false)
-    private Boolean isMain;
+    @Column(name = "position", nullable = false)
+    private Integer position;
 }

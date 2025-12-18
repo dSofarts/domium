@@ -9,5 +9,6 @@ public enum RoomType {
     OFFICE,
     GARAGE,
     LAVATORY,
+    WARDROBE,
     OTHER
 }

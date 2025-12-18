@@ -7,13 +7,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "order_assignments")
+@Table(name = "order_participants")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderAssignment {
+public class OrderParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
@@ -26,7 +26,7 @@ public class OrderAssignment {
 
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    private ParticipantRole role;
+    private ParticipantRole participantRole;
 
     @Column(name = "assigned_at", nullable = false)
     private OffsetDateTime assignedAt;
