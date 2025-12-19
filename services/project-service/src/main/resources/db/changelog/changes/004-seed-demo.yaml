@@ -1,0 +1,380 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-demo-5-projects
+      author: kirill
+      changes:
+        # -------------------------
+        # 5 Projects
+        # -------------------------
+        - insert:
+            tableName: projects
+            columns:
+              - column: { name: id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: owner_user_id, value: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }
+              - column: { name: project_type, value: "HOUSE" }
+              - column: { name: name, value: "Demo House 120" }
+              - column: { name: category, value: "FAMILY" }
+              - column: { name: price, valueNumeric: "12000000.00" }
+              - column: { name: material, value: "BRICK" }
+              - column: { name: location, value: "Ufa" }
+              - column: { name: description, value: "Demo проект: 120 м2, кирпич" }
+              - column: { name: publication_status, value: "PUBLISHED" }
+
+        - insert:
+            tableName: projects
+            columns:
+              - column: { name: id, value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: owner_user_id, value: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }
+              - column: { name: project_type, value: "HOUSE" }
+              - column: { name: name, value: "Demo House 95" }
+              - column: { name: category, value: "COMPACT" }
+              - column: { name: price, valueNumeric: "8500000.00" }
+              - column: { name: material, value: "WOOD" }
+              - column: { name: location, value: "Kazan" }
+              - column: { name: description, value: "Demo проект: компактный дом 95 м2" }
+              - column: { name: publication_status, value: "PUBLISHED" }
+
+        - insert:
+            tableName: projects
+            columns:
+              - column: { name: id, value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: owner_user_id, value: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" }
+              - column: { name: project_type, value: "TOWNHOUSE" }
+              - column: { name: name, value: "Demo Townhouse 140" }
+              - column: { name: category, value: "URBAN" }
+              - column: { name: price, valueNumeric: "15500000.00" }
+              - column: { name: material, value: "AERATED_CONCRETE" }
+              - column: { name: location, value: "Moscow" }
+              - column: { name: description, value: "Demo: таунхаус 140 м2" }
+              - column: { name: publication_status, value: "PUBLISHED" }
+
+        - insert:
+            tableName: projects
+            columns:
+              - column: { name: id, value: "44444444-4444-4444-4444-444444444444" }
+              - column: { name: owner_user_id, value: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" }
+              - column: { name: project_type, value: "HOUSE" }
+              - column: { name: name, value: "Draft House 110" }
+              - column: { name: category, value: "FAMILY" }
+              - column: { name: price, valueNumeric: "9800000.00" }
+              - column: { name: material, value: "BRICK" }
+              - column: { name: location, value: "Saint Petersburg" }
+              - column: { name: description, value: "Demo: проект в черновике" }
+              - column: { name: publication_status, value: "DRAFT" }
+
+        - insert:
+            tableName: projects
+            columns:
+              - column: { name: id, value: "55555555-5555-5555-5555-555555555555" }
+              - column: { name: owner_user_id, value: "cccccccc-cccc-cccc-cccc-cccccccccccc" }
+              - column: { name: project_type, value: "HOUSE" }
+              - column: { name: name, value: "Demo House 160 Premium" }
+              - column: { name: category, value: "PREMIUM" }
+              - column: { name: price, valueNumeric: "24000000.00" }
+              - column: { name: material, value: "MONOLITH" }
+              - column: { name: location, value: "Sochi" }
+              - column: { name: description, value: "Demo: премиальный дом 160 м2" }
+              - column: { name: publication_status, value: "PUBLISHED" }
+
+        # -------------------------
+        # Floors (по 2 этажа для первых 3 проектов, по 1 этажу для 4-5)
+        # -------------------------
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f1111111-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: floor_number, valueNumeric: "1" }
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f1111111-0000-0000-0000-000000000002" }
+              - column: { name: project_id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: floor_number, valueNumeric: "2" }
+
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f2222222-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: floor_number, valueNumeric: "1" }
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f2222222-0000-0000-0000-000000000002" }
+              - column: { name: project_id, value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: floor_number, valueNumeric: "2" }
+
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f3333333-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: floor_number, valueNumeric: "1" }
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f3333333-0000-0000-0000-000000000002" }
+              - column: { name: project_id, value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: floor_number, valueNumeric: "2" }
+
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f4444444-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "44444444-4444-4444-4444-444444444444" }
+              - column: { name: floor_number, valueNumeric: "1" }
+
+        - insert:
+            tableName: floors
+            columns:
+              - column: { name: id, value: "f5555555-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "55555555-5555-5555-5555-555555555555" }
+              - column: { name: floor_number, valueNumeric: "1" }
+
+        # -------------------------
+        # Rooms (по 3 комнаты на этаж для первых 3 проектов, по 2 комнаты для 4-5)
+        # -------------------------
+        # Project 1 floors
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000001" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "KITCHEN" }
+              - column: { name: area, valueNumeric: "12.50" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000002" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LIVING_ROOM" }
+              - column: { name: area, valueNumeric: "20.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000003" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "BATHROOM" }
+              - column: { name: area, valueNumeric: "4.20" }
+
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000004" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "16.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000005" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "14.50" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r1111111-0000-0000-0000-000000000006" }
+              - column: { name: floor_id, value: "f1111111-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "OFFICE" }
+              - column: { name: area, valueNumeric: "8.00" }
+
+        # Project 2 floors
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000001" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "KITCHEN" }
+              - column: { name: area, valueNumeric: "10.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000002" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LIVING_ROOM" }
+              - column: { name: area, valueNumeric: "18.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000003" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "BATHROOM" }
+              - column: { name: area, valueNumeric: "3.80" }
+
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000004" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "13.50" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000005" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "12.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r2222222-0000-0000-0000-000000000006" }
+              - column: { name: floor_id, value: "f2222222-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "6.50" }
+
+        # Project 3 floors
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000001" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "KITCHEN" }
+              - column: { name: area, valueNumeric: "13.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000002" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LIVING_ROOM" }
+              - column: { name: area, valueNumeric: "22.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000003" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LAVATORY" }
+              - column: { name: area, valueNumeric: "2.50" }
+
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000004" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "17.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000005" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "BEDROOM" }
+              - column: { name: area, valueNumeric: "15.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r3333333-0000-0000-0000-000000000006" }
+              - column: { name: floor_id, value: "f3333333-0000-0000-0000-000000000002" }
+              - column: { name: room_type, value: "WARDROBE" }
+              - column: { name: area, valueNumeric: "5.50" }
+
+        # Project 4 (1 floor, 2 rooms)
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r4444444-0000-0000-0000-000000000001" }
+              - column: { name: floor_id, value: "f4444444-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "KITCHEN" }
+              - column: { name: area, valueNumeric: "11.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r4444444-0000-0000-0000-000000000002" }
+              - column: { name: floor_id, value: "f4444444-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LIVING_ROOM" }
+              - column: { name: area, valueNumeric: "19.00" }
+
+        # Project 5 (1 floor, 2 rooms)
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r5555555-0000-0000-0000-000000000001" }
+              - column: { name: floor_id, value: "f5555555-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "KITCHEN" }
+              - column: { name: area, valueNumeric: "14.00" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: id, value: "r5555555-0000-0000-0000-000000000002" }
+              - column: { name: floor_id, value: "f5555555-0000-0000-0000-000000000001" }
+              - column: { name: room_type, value: "LIVING_ROOM" }
+              - column: { name: area, valueNumeric: "24.00" }
+
+        # -------------------------
+        # Project images (позиции 0..)
+        # -------------------------
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i1111111-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: storage_object_key, value: "11111111-1111-1111-1111-111111111111/images/img_1.png" }
+              - column: { name: position, valueNumeric: "0" }
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i1111111-0000-0000-0000-000000000002" }
+              - column: { name: project_id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: storage_object_key, value: "11111111-1111-1111-1111-111111111111/images/img_2.png" }
+              - column: { name: position, valueNumeric: "1" }
+
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i2222222-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: storage_object_key, value: "22222222-2222-2222-2222-222222222222/images/img.png" }
+              - column: { name: position, valueNumeric: "0" }
+
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i3333333-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: storage_object_key, value: "33333333-3333-3333-3333-333333333333/images/img.png" }
+              - column: { name: position, valueNumeric: "0" }
+
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i4444444-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "44444444-4444-4444-4444-444444444444" }
+              - column: { name: storage_object_key, value: "44444444-4444-4444-4444-444444444444/images/img.png" }
+              - column: { name: position, valueNumeric: "0" }
+
+        - insert:
+            tableName: project_images
+            columns:
+              - column: { name: id, value: "i5555555-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "55555555-5555-5555-5555-555555555555" }
+              - column: { name: storage_object_key, value: "55555555-5555-5555-5555-555555555555/images/img.png" }
+              - column: { name: position, valueNumeric: "0" }
+
+        # -------------------------
+        # Orders (несколько заказов на разные проекты)
+        # -------------------------
+        - insert:
+            tableName: project_orders
+            columns:
+              - column: { name: id, value: "o1111111-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "11111111-1111-1111-1111-111111111111" }
+              - column: { name: client_user_id, value: "dddddddd-dddd-dddd-dddd-dddddddddddd" }
+              - column: { name: status, value: "PENDING" }
+
+        - insert:
+            tableName: project_orders
+            columns:
+              - column: { name: id, value: "o2222222-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: client_user_id, value: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee" }
+              - column: { name: status, value: "NEW" }
+
+        - insert:
+            tableName: project_orders
+            columns:
+              - column: { name: id, value: "o3333333-0000-0000-0000-000000000001" }
+              - column: { name: project_id, value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: client_user_id, value: "dddddddd-dddd-dddd-dddd-dddddddddddd" }
+              - column: { name: status, value: "PENDING" }

@@ -50,6 +50,49 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       retries: ${HEALTHCHECK_RETRIES}
 
+  # Создаем бакет для фотографий, доступ к просмотру фото доступен всем,
+  # Даем доступ к загрузке и удалению только project сервису из project-service.json
+  project-service-minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./infra/minio/policies:/policies:ro
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set minioUrl http://minio:9000 minio password &&
+
+        (mc mb -p minioUrl/images || true) &&
+
+        mc anonymous set download minioUrl/images &&
+
+        (mc admin policy create minioUrl project-service-policy /policies/project-service.json || true) &&
+
+        (mc admin user add minioUrl project-service project-service-secret || true) &&
+
+        mc admin policy attach minioUrl project-service-policy --user project-service &&
+
+        echo 'MinIO init done.'
+      "
+
+  # Заливаем seed данные в бакет projects
+  minio-seed-projects:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./infra/minio/seed:/seed:ro
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set minioUrl http://minio:9000 minio password &&
+        (mc mb -p minioUrl/projects || true) &&
+        mc anonymous set download minioUrl/projects &&
+        mc mirror --overwrite /seed minioUrl/projects &&
+        echo 'MinIO seed done'
+      "
+
   create-loki-bucket:
     image: minio/mc
     container_name: create-loki-bucket
@@ -261,8 +304,6 @@ services:
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       postgres:
-        condition: service_healthy
-      kafka:
         condition: service_healthy
 
 volumes:
