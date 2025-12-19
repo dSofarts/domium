@@ -3,6 +3,7 @@ package ru.domium.projectservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,5 +27,5 @@ public class Floor {
 
     @OneToMany(mappedBy = "floor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Room> rooms = new java.util.ArrayList<>();
+    private List<Room> rooms = new ArrayList<>();
 }

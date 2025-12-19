@@ -14,18 +14,19 @@ databaseChangeLog:
 
         - addUniqueConstraint:
             tableName: project_images
-            columnNames: project_id, image_url
-            constraintName: uq_project_images_project_image_url
+            columnNames: project_id, storage_object_key
+            constraintName: uq_project_images_project_object_key
 
         - addUniqueConstraint:
             tableName: project_images
             columnNames: project_id, position
             constraintName: uq_project_images_project_image_position
 
-        - addCheckConstraint:
-            tableName: project_images
-            constraintName: chk_project_images_position_non_negative
-            constraintBody: position >= 0
+        - sql:
+            sql: |
+              ALTER TABLE project_images
+              ADD CONSTRAINT chk_project_images_position_nonneg
+              CHECK (position >= 0);
 
         # --- floors
         - addForeignKeyConstraint:
@@ -64,5 +65,5 @@ databaseChangeLog:
 
         - addUniqueConstraint:
             tableName: order_participants
-            columnNames: project_order_id, user_id, role
+            columnNames: project_order_id, user_id, participant_role
             constraintName: uq_order_participants_order_user_role

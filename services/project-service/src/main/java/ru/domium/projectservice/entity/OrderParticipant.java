@@ -24,7 +24,7 @@ public class OrderParticipant {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "role", nullable = false)
+    @Column(name = "participant_role", nullable = false)
     @Enumerated(EnumType.STRING)
     private ParticipantRole participantRole;
 

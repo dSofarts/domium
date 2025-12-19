@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.domium.projectservice.dto.response.ProjectOrderResponse;
 import ru.domium.projectservice.dto.response.ProjectResponse;
-import ru.domium.projectservice.entity.OrderParticipant;
 import ru.domium.projectservice.entity.ProjectOrder;
 import ru.domium.projectservice.service.ProjectOrderService;
 
@@ -43,7 +42,7 @@ public class ProjectOrderController {
     }
 
     //    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{orderId}")
+    @GetMapping("/my/{orderId}")
     public ResponseEntity<ProjectOrder> getPersonalOrderById(@PathVariable UUID projectId,
                                                      @PathVariable UUID orderId) {
         // TODO: Correct implementation

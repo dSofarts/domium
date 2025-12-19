@@ -32,7 +32,7 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private ProjectType type;
 
-    @Column(name = "category", nullable = false, length = 50)
+    @Column(name = "category", length = 50)
     private String category;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
@@ -51,6 +51,7 @@ public class Project {
 //    private Integer likes;
 
     @Column(name = "publication_status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProjectPublicationStatus publicationStatus;
 
     @Column(name = "created_at", nullable = false)

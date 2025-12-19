@@ -32,6 +32,7 @@ public class ProjectOrder {
     private UUID clientUserId;
 
     @Column(name = "status", length = 50)
+    @Enumerated(EnumType.STRING)
     private ProjectOrderStatus status;
 
     @Column(name = "created_at")

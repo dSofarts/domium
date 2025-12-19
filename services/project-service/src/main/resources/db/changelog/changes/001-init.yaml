@@ -179,7 +179,7 @@ databaseChangeLog:
                   name: user_id
                   type: UUID
               - column:
-                  name: participantRole
+                  name: participant_role
                   type: VARCHAR(50) # ARCHITECT, MANAGER, WORKER
               - column:
                   name: assigned_at
