@@ -15,8 +15,8 @@ import java.net.URI;
 @Configuration
 public class StorageConfig {
 
-    @Value("${minio.endpoint}")
-    private String endpoint;
+    @Value("${minio.url}")
+    private String url;
     @Value("${minio.region}")
     private String region;
     @Value("${minio.access-key}")
@@ -30,7 +30,7 @@ public class StorageConfig {
 
         return S3Client.builder()
                 .httpClient(ApacheHttpClient.create())
-                .endpointOverride(URI.create(endpoint))
+                .endpointOverride(URI.create(url))
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
