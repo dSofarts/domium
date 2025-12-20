@@ -11,7 +11,7 @@ import ru.domium.projectservice.entity.ProjectPublicationStatus;
 import ru.domium.projectservice.exception.NotFoundException;
 import ru.domium.projectservice.repository.ProjectImageRepository;
 import ru.domium.projectservice.repository.ProjectRepository;
-import ru.domium.projectservice.storage.service.ImageS3Service;
+import ru.domium.projectservice.objectstorage.service.ImageS3Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,9 +67,6 @@ public class ProjectImageService {
         return objectKey;
     }
 
-    public void delete(UUID id) {
-        projectImageRepository.deleteById(id);
-    }
     private void saveToDb(ProjectImage image) {
         try {
             projectImageRepository.save(image);

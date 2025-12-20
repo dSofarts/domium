@@ -2,4 +2,4 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres-dom:5432/projects
 minio:
-  endpoint: http://minio:9000
+  url: http://minio:9000

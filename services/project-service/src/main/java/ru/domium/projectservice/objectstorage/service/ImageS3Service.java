@@ -24,7 +24,7 @@ public class ImageS3Service implements ImageStorageService {
 
     public ImageS3Service(S3Client s3Client,
                           @Value("${minio.bucket}") String bucketName,
-                          @Value("${minio.endpoint}") String publicBaseUrl) {
+                          @Value("${minio.url}") String publicBaseUrl) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
         this.publicBaseUrl = publicBaseUrl;
