@@ -1,0 +1,13 @@
+plugins {
+    id 'idea'
+}
+
+subprojects {
+    group = 'ru.domium'
+    version = "$appVersion"
+    
+    repositories {
+        mavenCentral()
+    }
+}
+

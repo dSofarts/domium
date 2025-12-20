@@ -1,4 +1,4 @@
-package ru.domium.gateway.config;
+package ru.domium.security.config;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,6 +12,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Конвертер для преобразования ролей из Keycloak JWT токена в Spring Security authorities.
+ * Читает роли из realm_access.roles и преобразует их в формат ROLE_*.
+ */
 public class JwtRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
     private final JwtGrantedAuthoritiesConverter defaultConverter = new JwtGrantedAuthoritiesConverter();

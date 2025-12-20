@@ -43,9 +43,7 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-          # Отключаем RewritePath по умолчанию, чтобы сохранить имя сервиса в пути
-          # Теперь /buildings/test будет проксирован как /buildings/test (а не /test)
-          filters: []
+          filters: [ ]
   security:
     oauth2:
       resourceserver:

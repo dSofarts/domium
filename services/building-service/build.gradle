@@ -16,6 +16,7 @@ java {
 }
 
 repositories {
+    mavenLocal()  // Приоритет для библиотек domium-common
     mavenCentral()
     maven {
         url 'https://packages.confluent.io/maven/'
@@ -27,6 +28,8 @@ ext {
 }
 
 dependencies {
+    implementation 'ru.domium:security:1.0.0'
+    
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
