@@ -48,8 +48,8 @@ public class OrderParticipantController {
 
     //    @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/{participantId}")
-    public ResponseEntity<OrderParticipant> getById(@PathVariable String projectId,
-                                                    @PathVariable String orderId,
+    public ResponseEntity<OrderParticipant> getById(@PathVariable UUID projectId,
+                                                    @PathVariable UUID orderId,
                                                     @PathVariable UUID participantId) {
 //    TODO: Correct implementation
         OrderParticipant orderParticipant = orderParticipantService.getById(participantId);
