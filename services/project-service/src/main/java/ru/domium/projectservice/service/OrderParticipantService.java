@@ -23,19 +23,17 @@ public class OrderParticipantService {
         return orderParticipantRepository.findById(id).orElse(null);
     }
 
-    public OrderParticipant create(OrderParticipant orderParticipant) {
-        return orderParticipantRepository.save(orderParticipant);
-    }
-
     public void delete(UUID id) {
         orderParticipantRepository.deleteById(id);
     }
 
     public OrderParticipantResponse assignParticipant(UUID projectId, UUID orderId, UUID userId) {
+//        TODO: Implement method
         return null;
     }
 
     public void unassignParticipant(UUID projectId, UUID orderId, UUID userId) {
+        //        TODO: Implement method
     }
 }
 

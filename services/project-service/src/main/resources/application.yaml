@@ -2,14 +2,14 @@ spring:
   application.name: project-service
   datasource:
     url: jdbc:postgresql://localhost:5433/projects
-    username: postgres
-    password: postgres
+    username: {$POSTGRES_USER:postgres}
+    password: {$POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
-    user: postgres
-    password: postgres
+    user: {$POSTGRES_USER:postgres}
+    password: {$POSTGRES_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -18,7 +18,7 @@ logging:
     liquibase: DEBUG
 minio:
   bucket: projects
-  access-key: project-service
-  secret-key: project-service-secret
+  access-key: {S3_ACCESS_KEY:project-service}
+  secret-key: {S3_SECRET_KEY:project-service-secret}
   region: eu-central-1
   endpoint: http://localhost:9000

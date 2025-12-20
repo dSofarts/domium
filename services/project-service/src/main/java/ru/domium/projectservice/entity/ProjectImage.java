@@ -6,21 +6,15 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "project_images",
-       uniqueConstraints = {
-               @UniqueConstraint(name = "uq_project_images_project_url", columnNames = {"project_id", "storage_object_key"})
-       },
-       indexes = {
-               @Index(name = "idx_project_images_project_id", columnList = "project_id")
-       })
+@Table(name = "project_images")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "project")
 @Builder
 public class ProjectImage {
     @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @ManyToOne(optional = false)

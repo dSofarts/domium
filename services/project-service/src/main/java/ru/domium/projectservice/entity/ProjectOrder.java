@@ -16,6 +16,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "participants")
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 public class ProjectOrder {

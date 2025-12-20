@@ -15,6 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"floors", "images", "orders"})
 @Builder
 public class Project {
     @Id

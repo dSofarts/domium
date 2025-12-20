@@ -12,6 +12,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "projectOrder")
 @Builder
 public class OrderParticipant {
     @Id

@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderParticipantResponse {
     private UUID id;
-    private Long orderId;
-    private Long userId;
+    private UUID orderId;
+    private UUID userId;
     private String participantRole;
 }

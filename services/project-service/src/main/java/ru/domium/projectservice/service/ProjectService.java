@@ -9,7 +9,7 @@ import ru.domium.projectservice.dto.response.ProjectImageResponse;
 import ru.domium.projectservice.dto.response.ProjectResponse;
 import ru.domium.projectservice.entity.Project;
 import ru.domium.projectservice.repository.ProjectRepository;
-import ru.domium.projectservice.storage.service.ImageS3Service;
+import ru.domium.projectservice.objectstorage.service.ImageS3Service;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.domium.projectservice.storage.service;
+package ru.domium.projectservice.objectstorage.service;
 
 import org.springframework.web.multipart.MultipartFile;
 

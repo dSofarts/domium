@@ -1,16 +1,13 @@
-package ru.domium.projectservice.storage.service;
+package ru.domium.projectservice.objectstorage.service;
 
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.domium.projectservice.exception.ImageStorageException;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -33,6 +30,7 @@ public class ImageS3Service implements ImageStorageService {
         this.publicBaseUrl = publicBaseUrl;
     }
 
+    @Override
     public String uploadProjectImage(UUID projectId, UUID imageId, MultipartFile image) {
         String objectKey = buildObjectKey(projectId, imageId);
         putImageInStorage(image, objectKey);
@@ -40,6 +38,7 @@ public class ImageS3Service implements ImageStorageService {
     }
 
 //    TODO: UNUSED FOR NOW
+    @Override
     public String replaceProjectImage(UUID projectId, String oldObjectKey, MultipartFile image, UUID newImageId) {
         String newObjectKey = buildObjectKey(projectId, newImageId);
         putImageInStorage(image, newObjectKey);
@@ -51,6 +50,7 @@ public class ImageS3Service implements ImageStorageService {
         return newObjectKey;
     }
 
+    @Override
     public void deleteImageByKey(String objectKey) {
         try {
             s3Client.deleteObject(builder -> builder.bucket(bucketName).key(objectKey).build());
@@ -80,23 +80,6 @@ public class ImageS3Service implements ImageStorageService {
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, image.getSize()));
         } catch (IOException | S3Exception | SdkClientException e) {
             throw new ImageStorageException("Couldn't upload image to bucket " + bucketName + ": " + e.getMessage());
-        }
-    }
-
-    /**
-     * Just in case.
-     * Downloads an image from S3 by its key via service.
-     */
-    public byte[] downloadImageByKey(String key) {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-
-        try (ResponseInputStream<GetObjectResponse> inputStream = s3Client.getObject(getObjectRequest)) {
-            return inputStream.readAllBytes();
-        } catch (IOException e) {
-            throw new ImageStorageException("Couldn't download image from bucket " + bucketName + ": " + e.getMessage());
         }
     }
 }

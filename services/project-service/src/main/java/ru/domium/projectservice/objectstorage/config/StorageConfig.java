@@ -1,4 +1,4 @@
-package ru.domium.projectservice.storage.config;
+package ru.domium.projectservice.objectstorage.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

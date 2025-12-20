@@ -39,7 +39,7 @@ databaseChangeLog:
 
         # --- rooms
         - addForeignKeyConstraint:
-              constraintName: fk_rooms_projects
+              constraintName: fk_rooms_floors
               baseTableName: rooms
               baseColumnNames: floor_id
               referencedTableName: floors

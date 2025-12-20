@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 002-seed-demo-5-projects
+      id: 004-seed-demo-5-projects
       author: kirill
       changes:
         # -------------------------
@@ -67,7 +67,7 @@ databaseChangeLog:
             columns:
               - column: { name: id, value: "55555555-5555-5555-5555-555555555555" }
               - column: { name: owner_user_id, value: "cccccccc-cccc-cccc-cccc-cccccccccccc" }
-              - column: { name: project_type, value: "BATHHOUSE" }
+              - column: { name: project_type, value: "SERIAL" }
               - column: { name: name, value: "Demo House 160 Premium" }
               - column: { name: category, value: "PREMIUM" }
               - column: { name: price, valueNumeric: "24000000.00" }

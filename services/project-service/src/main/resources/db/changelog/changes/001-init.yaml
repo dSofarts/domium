@@ -134,6 +134,8 @@ databaseChangeLog:
               - column:
                   name: position
                   type: INTEGER
+                  constraints:
+                    nullable: false
         - createTable:
             tableName: project_orders
             columns:
