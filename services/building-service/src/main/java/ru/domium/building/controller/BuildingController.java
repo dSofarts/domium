@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.domium.security.util.SecurityUtils;
+import ru.domium.security.annotation.PublicEndpoint;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ public class BuildingController {
             @ApiResponse(responseCode = "200", description = "Успешный ответ",
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
+    @PublicEndpoint
     @GetMapping("/public/info")
     public ResponseEntity<Map<String, Object>> getPublicInfo() {
         log.info("Public info endpoint called");
@@ -69,7 +71,7 @@ public class BuildingController {
         List<String> roles = jwt.getClaimAsMap("realm_access") != null
                 ? (List<String>) jwt.getClaimAsMap("realm_access").getOrDefault("roles", List.of())
                 : List.of();
-        
+
         log.info("Test endpoint called. UserId: {}, Roles: {}", userId, roles);
         
         Map<String, Object> response = new HashMap<>();
@@ -98,17 +100,17 @@ public class BuildingController {
             @PathVariable String id,
             @Parameter(description = "JWT токен текущего пользователя", hidden = true)
             @AuthenticationPrincipal Jwt jwt) {
-        
+
         String builderId = SecurityUtils.getCurrentUserId(jwt);
-        
+
         log.info("Get building {} for builder. BuilderId: {}", id, builderId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("buildingId", id);
         response.put("builderId", builderId);
         response.put("name", "Test Building for Builder");
         response.put("status", "in_progress");
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -129,17 +131,17 @@ public class BuildingController {
             @PathVariable String id,
             @Parameter(description = "JWT токен текущего пользователя", hidden = true)
             @AuthenticationPrincipal Jwt jwt) {
-        
+
         String customerId = SecurityUtils.getCurrentUserId(jwt);
-        
+
         log.info("Get building {} for customer. CustomerId: {}", id, customerId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("buildingId", id);
         response.put("customerId", customerId);
         response.put("name", "Test Building for Customer");
         response.put("status", "active");
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -161,7 +163,7 @@ public class BuildingController {
             @AuthenticationPrincipal Jwt jwt) {
         
         String userId = SecurityUtils.getCurrentUserId(jwt);
-        
+
         log.info("Get building {}. UserId: {}", id, userId);
         
         Map<String, Object> response = new HashMap<>();
