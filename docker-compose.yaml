@@ -50,8 +50,8 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       retries: ${HEALTHCHECK_RETRIES}
 
-  # Создаем бакет для фотографий, доступ к просмотру фото доступен всем,
-  # Даем доступ к загрузке и удалению только project сервису из project-service.json
+  # Создаем бакет для project-service, доступ к просмотру файлов доступен всем,
+  # Даем доступ к загрузке и удалению только project-service из project-service.json
   project-service-minio-init:
     image: minio/mc
     depends_on:
@@ -61,11 +61,11 @@ services:
       - ./infra/minio/policies:/policies:ro
     entrypoint: >
       /bin/sh -c "
-        mc alias set minioUrl http://minio:9000 minio password &&
+        mc alias set minioUrl http://minio:${MINIO_API_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
 
-        (mc mb -p minioUrl/projects || true) &&
+        (mc mb -p minioUrl/${PROJECTS_BUCKET} || true) &&
 
-        mc anonymous set download minioUrl/projects &&
+        mc anonymous set download minioUrl/${PROJECTS_BUCKET} &&
 
         (mc admin policy create minioUrl project-service-policy /policies/project-service.json || true) &&
 
@@ -86,10 +86,10 @@ services:
       - ./infra/minio/seed/images/projects:/seed:ro
     entrypoint: >
       /bin/sh -c "
-        mc alias set minioUrl http://minio:9000 minio password &&
-        (mc mb -p minioUrl/projects || true) &&
-        mc anonymous set download minioUrl/projects &&
-        mc mirror --overwrite /seed/images/projects minioUrl/projects &&
+        mc alias set minioUrl http://minio:${MINIO_API_PORT} minio password &&
+        (mc mb -p minioUrl/${PROJECTS_BUCKET} || true) &&
+        mc anonymous set download minioUrl/${PROJECTS_BUCKET} &&
+        mc mirror --overwrite /seed/images/projects minioUrl/${PROJECTS_BUCKET} &&
         echo 'MinIO seed done'
       "
 
@@ -363,6 +363,28 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
+
+  project-service:
+    image: project-service:latest
+    container_name: project-service
+    ports:
+      - "${PROJECTS_PORT}:8080"
+      - "5006:5005"
+    build:
+      context: ./services/project-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${PROJECTS_POSTGRES_DB}
+      POSTGRES_USER: ${PROJECTS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${PROJECTS_POSTGRES_PASSWORD}
+      MINIO_HOST: minio
+      MINIO_PORT: ${MINIO_API_PORT}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   grafana-storage:
