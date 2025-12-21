@@ -294,7 +294,8 @@ services:
       - "${BUILDING_PORT}:8091"
       - "5005:5005"
     build:
-      context: ./services/building-service
+      context: ./services
+      dockerfile: building-service/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
       POSTGRES_HOST: postgres
