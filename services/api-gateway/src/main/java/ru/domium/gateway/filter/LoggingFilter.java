@@ -6,6 +6,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -21,18 +22,27 @@ public class LoggingFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String method = request.getMethod().toString();
         String path = request.getURI().getPath();
-        String userId = request.getHeaders().getFirst("X-User-Id");
         String targetService = extractTargetService(exchange);
-        
-        log.info("Gateway request: {} {} | UserId: {} | Target: {}", 
-                method, path, userId != null ? userId : "anonymous", targetService);
-        
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            int statusCode = exchange.getResponse().getStatusCode() != null 
-                    ? exchange.getResponse().getStatusCode().value() 
-                    : 0;
-            log.debug("Gateway response: {} {} | Status: {}", method, path, statusCode);
-        }));
+
+        return ReactiveSecurityContextHolder.getContext()
+                .cast(org.springframework.security.core.context.SecurityContext.class)
+                .map(securityContext -> {
+                    String userId = "anonymous";
+                    if (securityContext.getAuthentication() != null 
+                            && securityContext.getAuthentication().getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+                        userId = jwt.getSubject();
+                    }
+                    log.info("Gateway request: {} {} | UserId: {} | Target: {}", 
+                            method, path, userId, targetService);
+                    return exchange;
+                })
+                .defaultIfEmpty(exchange)
+                .flatMap(ex -> chain.filter(ex).then(Mono.fromRunnable(() -> {
+                    int statusCode = exchange.getResponse().getStatusCode() != null 
+                            ? exchange.getResponse().getStatusCode().value() 
+                            : 0;
+                    log.debug("Gateway response: {} {} | Status: {}", method, path, statusCode);
+                })));
     }
 
     private String extractTargetService(ServerWebExchange exchange) {

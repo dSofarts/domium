@@ -43,15 +43,12 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-          # Отключаем RewritePath по умолчанию, чтобы сохранить имя сервиса в пути
-          # Теперь /buildings/test будет проксирован как /buildings/test (а не /test)
-          filters: []
+          filters: [ ]
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/domium}
-          jwk-set-uri: ${KEYCLOAK_INTERNAL_URL:http://keycloak:8080}/realms/domium/protocol/openid-connect/certs
 
 management:
   endpoints:
@@ -78,6 +75,14 @@ springdoc:
         name: All Services
 
 gateway:
+  security:
+    permit-all:
+      - /actuator/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /v3/api-docs/**
+      - /webjars/**
+      - /api/buildings/public/**
   server:
     url: http://localhost:8090
 

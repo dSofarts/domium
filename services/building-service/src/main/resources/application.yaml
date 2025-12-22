@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: buildings
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/domium}
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
