@@ -1,5 +1,7 @@
 package ru.domium.documentservice.controller;
 
+import static ru.domium.security.util.SecurityUtils.hasRole;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,10 +11,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ru.domium.documentservice.dto.DocumentDtos.*;
 import ru.domium.documentservice.model.*;
 import ru.domium.documentservice.security.AuthorizationService;
-import ru.domium.documentservice.security.UserContext;
 import ru.domium.documentservice.service.DocumentMapper;
 import ru.domium.documentservice.service.DocumentWorkflowService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,8 +24,9 @@ import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.oauth2.jwt.Jwt;
+import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Documents",
@@ -56,9 +60,9 @@ public class DocumentController {
       required = true
   )
   @GetMapping("/{documentId}")
-  public DocumentDetailsDto details(@PathVariable UUID documentId, Authentication authentication) {
+  public DocumentDetailsDto details(@PathVariable UUID documentId, @AuthenticationPrincipal Jwt jwt) {
     var doc = workflow.getDocument(documentId);
-    authz.assertCanReadDocument(authentication, doc);
+    authz.assertCanReadDocument(jwt, doc);
 
     var versions = workflow.listVersions(documentId);
     var comments = workflow.listComments(documentId);
@@ -90,17 +94,18 @@ public class DocumentController {
       description = "Пометить документ как просмотренный",
       example = "true"
   )
+  @PreAuthorize("isAuthenticated()")
   @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<Resource> file(@PathVariable UUID documentId,
-                                                                   @RequestParam(defaultValue = "true") boolean markViewed,
-                                                                   Authentication authentication,
-                                                                   HttpServletRequest request) {
+      @RequestParam(defaultValue = "true") boolean markViewed,
+      @AuthenticationPrincipal Jwt jwt,
+      HttpServletRequest request) {
     var doc = workflow.getDocument(documentId);
-    authz.assertCanReadDocument(authentication, doc);
+    authz.assertCanReadDocument(jwt, doc);
 
-    ActorType actorType = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_BUILDER") || a.getAuthority().equals("ROLE_ADMIN"))
+    ActorType actorType = (hasRole(jwt, "builder") || hasRole(jwt, "admin"))
         ? ActorType.BUILDER : ActorType.CLIENT;
-    UUID actorId = UserContext.userId(authentication);
+    UUID actorId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
 
     InputStream is = workflow.loadDocumentFile(documentId, markViewed, actorType, actorId);
     var resource = new InputStreamResource(is);
@@ -129,11 +134,13 @@ public class DocumentController {
       description = "Данные подписи (тип подписи и код подтверждения)",
       required = true
   )
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/{documentId}/sign")
-  public SignatureDto sign(@PathVariable UUID documentId, @RequestBody SignRequest body, Authentication authentication, HttpServletRequest request) {
-    UUID userId = UserContext.userId(authentication);
+  public SignatureDto sign(@PathVariable UUID documentId, @RequestBody SignRequest body,
+      @AuthenticationPrincipal Jwt jwt, HttpServletRequest request) {
+    UUID userId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
     var doc = workflow.getDocument(documentId);
-    authz.assertCanReadDocument(authentication, doc);
+    authz.assertCanReadDocument(jwt, doc);
 
     var sig = workflow.sign(documentId, userId, body.signatureType(), body.confirmationCode(), request.getRemoteAddr(), request.getHeader("User-Agent"));
     return DocumentMapper.toDto(sig);
@@ -158,11 +165,14 @@ public class DocumentController {
       description = "Комментарий пользователя (опционально)",
       required = false
   )
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/{documentId}/reject")
-  public void reject(@PathVariable UUID documentId, @RequestBody RejectRequest body, Authentication authentication) {
-    UUID userId = UserContext.userId(authentication);
+  public void reject(@PathVariable UUID documentId,
+      @RequestBody RejectRequest body,
+      @AuthenticationPrincipal Jwt jwt) {
+    UUID userId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
     var doc = workflow.getDocument(documentId);
-    authz.assertCanReadDocument(authentication, doc);
+    authz.assertCanReadDocument(jwt, doc);
     workflow.reject(documentId, userId, body != null ? body.comment() : null);
   }
 }

@@ -3,37 +3,44 @@ package ru.domium.documentservice.security;
 import ru.domium.documentservice.exception.ApiExceptions;
 import ru.domium.documentservice.model.DocumentInstance;
 import java.util.UUID;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import ru.domium.security.util.SecurityUtils;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @Component
 public class AuthorizationService {
 
-  public void assertCanReadDocument(Authentication auth, DocumentInstance doc) {
-    if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
-    UUID uid = UserContext.userId(auth);
-    if (uid == null || doc.getUserId() == null || !uid.equals(doc.getUserId())) {
+  public void assertCanReadDocument(Jwt jwt, DocumentInstance doc) {
+    if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
+    if (hasRole(jwt, "builder") || hasRole(jwt, "admin")) return;
+    String currentUserId = SecurityUtils.getCurrentUserId(jwt);
+    if(currentUserId == null || currentUserId.isBlank())
+      throw ApiExceptions.forbidden("Unauthenticated");
+    UUID uid = UUID.fromString(currentUserId);
+    if (doc.getUserId() == null || !uid.equals(doc.getUserId())) {
       throw ApiExceptions.forbidden("Access denied");
     }
   }
 
-  public void assertCanReadProject(Authentication auth, UUID projectId, UUID userIdInDoc) {
-    if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
-    UUID uid = UserContext.userId(auth);
-    if (uid == null || userIdInDoc == null || !uid.equals(userIdInDoc)) {
+  /*public void assertCanReadProject(Jwt jwt, UUID projectId, UUID userIdInDoc) {
+    if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
+    if (hasRole(jwt, "ROLE_BUILDER") || hasRole(jwt, "ROLE_ADMIN")) return;
+    String currentUserId = SecurityUtils.getCurrentUserId(jwt);
+    if(currentUserId == null || currentUserId.isBlank())
+      throw ApiExceptions.forbidden("Unauthenticated");
+    UUID uid = UUID.fromString(currentUserId);
+    if (userIdInDoc == null || !uid.equals(userIdInDoc)) {
       throw ApiExceptions.forbidden("Access denied");
     }
-  }
+  }*/
 
-  public void assertProvider(Authentication auth) {
-    if (auth == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(auth, "ROLE_BUILDER") || hasRole(auth, "ROLE_ADMIN")) return;
+  public void assertProvider(Jwt jwt) {
+    if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
+    if (hasRole(jwt, "builder") || hasRole(jwt, "admin")) return;
     throw ApiExceptions.forbidden("Builder role required");
   }
 
-  private boolean hasRole(Authentication auth, String role) {
-    return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(role));
+  private boolean hasRole(Jwt jwt, String role) {
+    return SecurityUtils.hasRole(jwt, role);
   }
 }

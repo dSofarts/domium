@@ -2,6 +2,8 @@ package ru.domium.documentservice.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import ru.domium.documentservice.exception.ApiExceptions;
 import ru.domium.documentservice.model.*;
 import ru.domium.documentservice.repository.DocumentTemplateRepository;
@@ -41,14 +43,14 @@ public class TemplateController {
   }
 
   @GetMapping
-  public List<DocumentTemplate> list(Authentication authentication) {
-    authz.assertProvider(authentication);
+  public List<DocumentTemplate> list(@AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
     return repo.findAll();
   }
 
   @GetMapping("/{id}")
-  public DocumentTemplate get(@PathVariable UUID id, Authentication authentication) {
-    authz.assertProvider(authentication);
+  public DocumentTemplate get(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
     return repo.findById(id).orElseThrow(() -> ApiExceptions.notFound("Template not found"));
   }
 
@@ -66,9 +68,9 @@ public class TemplateController {
       @RequestParam(name = "required", defaultValue = "false") boolean required,
       @RequestParam(name = "projectType", required = false) String projectType,
       @RequestParam(name = "templateEngineType", defaultValue = "TEXT") TemplateEngineType templateEngineType,
-      Authentication authentication
+      @AuthenticationPrincipal Jwt jwt
   ) {
-    authz.assertProvider(authentication);
+    authz.assertProvider(jwt);
 
     if (file == null || file.isEmpty()) {
       throw ApiExceptions.badRequest("file is required");
@@ -105,8 +107,8 @@ public class TemplateController {
   @PutMapping("/{id}")
   public DocumentTemplate update(@PathVariable UUID id,
       @RequestBody DocumentTemplate body,
-      Authentication authentication) {
-    authz.assertProvider(authentication);
+      @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
     DocumentTemplate t = repo.findById(id).orElseThrow(() -> ApiExceptions.notFound("Template not found"));
     t.setName(body.getName());
     t.setDescription(body.getDescription());

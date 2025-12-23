@@ -10,17 +10,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import ru.domium.documentservice.dto.DocumentDtos.AdvanceStageRequest;
 import ru.domium.documentservice.dto.DocumentDtos.DocumentInstanceDto;
 import ru.domium.documentservice.model.StageCode;
 import ru.domium.documentservice.security.AuthorizationService;
-import ru.domium.documentservice.security.UserContext;
 import ru.domium.documentservice.service.DocumentMapper;
 import ru.domium.documentservice.service.DocumentWorkflowService;
 import java.util.UUID;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Provider / Documents",
@@ -66,15 +68,15 @@ public class ProviderController {
       ),
       description = "Multipart-запрос с PDF файлом и опциональным комментарием"
   )
-
+  @PreAuthorize("hasRole('BUILDER')")
   @PostMapping(value = "/documents/{documentId}/uploadNewVersion",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public DocumentInstanceDto uploadNewVersion(@PathVariable UUID documentId,
-                                              @RequestPart("file") MultipartFile file,
-                                              @RequestPart(name = "comment", required = false) String comment,
-                                              Authentication authentication) {
-    authz.assertProvider(authentication);
-    UUID providerId = UserContext.userId(authentication);
+      @RequestPart("file") MultipartFile file,
+      @RequestPart(name = "comment", required = false) String comment,
+      @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
+    UUID providerId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
     var doc = workflow.uploadNewVersion(documentId, providerId, file, comment);
     return DocumentMapper.toDto(doc);
   }
@@ -126,6 +128,7 @@ public class ProviderController {
       ),
       description = "Multipart-запрос с PDF файлом и опциональным комментарием"
   )
+  @PreAuthorize("hasRole('BUILDER')")
   @PostMapping(value = "/projects/{projectId}/documents/manualUpload",
   consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public DocumentInstanceDto manualUpload(@PathVariable UUID projectId,
@@ -134,9 +137,9 @@ public class ProviderController {
       @RequestParam(name = "groupId", required = false) UUID groupId,
       @RequestParam(name = "userId") UUID userId,
       @RequestParam(name = "title", required = false) String title,
-      Authentication authentication) {
-    authz.assertProvider(authentication);
-    UUID providerId = UserContext.userId(authentication);
+      @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
+    UUID providerId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
     var doc = workflow.manualUpload(projectId, providerId, stageCode, groupId, userId, file, title);
     return DocumentMapper.toDto(doc);
   }
@@ -148,10 +151,11 @@ public class ProviderController {
    * Под удаление
    */
   @Deprecated(since = "2025-12", forRemoval = true)
+  @PreAuthorize("hasRole('BUILDER')")
   @PostMapping("/projects/{projectId}/advanceStage")
-  public void advanceStage(@PathVariable UUID projectId, @RequestBody AdvanceStageRequest body, Authentication authentication) {
-    authz.assertProvider(authentication);
-    UUID providerId = UserContext.userId(authentication);
+  public void advanceStage(@PathVariable UUID projectId, @RequestBody AdvanceStageRequest body, @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
+    UUID providerId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
     workflow.advanceStage(projectId, body.nextStage(), providerId);
   }
 }

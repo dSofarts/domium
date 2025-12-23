@@ -1,5 +1,7 @@
 package ru.domium.documentservice.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import ru.domium.documentservice.dto.DocumentDtos.DocumentInstanceDto;
 import ru.domium.documentservice.security.AuthorizationService;
 import ru.domium.documentservice.service.DocumentMapper;
@@ -33,11 +35,12 @@ public class DocumentGroupsController {
   }
 
   @GetMapping("/{groupId}/documents")
-  public List<DocumentInstanceDto> listGroupDocuments(@PathVariable UUID groupId, Authentication authentication) {
+  public List<DocumentInstanceDto> listGroupDocuments(@PathVariable UUID groupId,
+      @AuthenticationPrincipal Jwt jwt) {
     // Group listing is effectively a document listing; we enforce per-document access.
     var groupDocs = workflow.listGroupDocuments(groupId);
     for (var d : groupDocs) {
-      authz.assertCanReadDocument(authentication, d);
+      authz.assertCanReadDocument(jwt, d);
     }
     return groupDocs.stream().map(DocumentMapper::toDto).toList();
   }

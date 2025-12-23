@@ -1,20 +1,24 @@
 package ru.domium.documentservice.controller;
 
+import static ru.domium.security.util.SecurityUtils.hasRole;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import ru.domium.documentservice.dto.DocumentDtos.*;
 import ru.domium.documentservice.model.*;
 import ru.domium.documentservice.security.AuthorizationService;
-import ru.domium.documentservice.security.UserContext;
 import ru.domium.documentservice.service.DocumentMapper;
 import ru.domium.documentservice.service.DocumentWorkflowService;
 import java.util.*;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Project / Documents",
@@ -68,19 +72,19 @@ public class ProjectDocumentsController {
       description = "Фильтр по типу группы документов",
       required = false
   )
+  @PreAuthorize("isAuthenticated()")
   @GetMapping
   public List<DocumentInstanceDto> list(@PathVariable UUID projectId,
-                                       @RequestParam(required = false) DocumentStatus status,
-                                       @RequestParam(required = false) StageCode stage,
-                                       @RequestParam(required = false) DocumentGroupType groupType,
-                                       Authentication authentication) {
-    boolean isProvider = authentication.getAuthorities().stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_BUILDER") || a.getAuthority().equals("ROLE_ADMIN"));
+      @RequestParam(required = false) DocumentStatus status,
+      @RequestParam(required = false) StageCode stage,
+      @RequestParam(required = false) DocumentGroupType groupType,
+      @AuthenticationPrincipal Jwt jwt) {
+    boolean isProvider = (hasRole(jwt, "builder") || hasRole(jwt, "admin"));
     List<DocumentInstance> docs;
     if (isProvider) {
       docs = workflow.listProjectDocuments(projectId, status, stage, groupType);
     } else {
-      UUID userId = UserContext.userId(authentication);
+      UUID userId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
       docs = workflow.listProjectDocumentsForUser(projectId, userId, status, stage, groupType);
     }
     return docs.stream().map(DocumentMapper::toDto).toList();
@@ -94,10 +98,10 @@ public class ProjectDocumentsController {
   @Deprecated(since = "2025-12", forRemoval = true)
   @PostMapping("/generate")
   public List<DocumentInstanceDto> generate(@PathVariable UUID projectId,
-                                           @RequestParam StageCode stage,
-                                           @RequestBody(required = false) GenerateRequest body,
-                                           Authentication authentication) {
-    authz.assertProvider(authentication);
+      @RequestParam StageCode stage,
+      @RequestBody(required = false) GenerateRequest body,
+      @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
     UUID userId = body != null ? body.userId() : null;
     String projectType = body != null ? body.projectType() : null;
     Map<String, Object> data = body != null ? body.data() : Map.of();

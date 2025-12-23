@@ -85,6 +85,11 @@
       <version>2.5.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>ru.domium</groupId>
+      <artifactId>security</artifactId>
+      <version>1.0.0</version>
+    </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -103,7 +108,17 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <repositories>
+    <repository>
+      <id>maven-local</id>
+      <url>file://${user.home}/.m2/repository</url>
+    </repository>
 
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+  </repositories>
   <build>
     <plugins>
       <plugin>

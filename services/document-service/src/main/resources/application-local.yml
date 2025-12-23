@@ -30,8 +30,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8080/realms/document-realm/protocol/openid-connect/certs
-
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/domium}
 server:
   port: 8092
   forward-headers-strategy: framework
