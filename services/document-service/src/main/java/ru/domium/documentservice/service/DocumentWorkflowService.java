@@ -70,6 +70,7 @@ public class DocumentWorkflowService {
     this.objectMapper = objectMapper;
   }
 
+
   @Transactional
   public List<DocumentInstance> generateForStage(UUID projectId, StageCode stage, UUID userId,
       String projectType, Map<String, Object> data) {
@@ -189,7 +190,7 @@ public class DocumentWorkflowService {
     if (signatureType != SignatureType.SIMPLE) {
       throw ApiExceptions.badRequest("Only SIMPLE signature is supported in MVP");
     }
-    // mock confirmation validation
+
     if (confirmationCode == null || confirmationCode.length() < 4) {
       throw ApiExceptions.badRequest("Invalid confirmationCode");
     }
@@ -371,8 +372,6 @@ public class DocumentWorkflowService {
 
   @Transactional
   public void advanceStage(UUID projectId, StageCode nextStage, UUID providerId) {
-    // Verify required docs in current stage signed
-    // For MVP assume linear order; determine current stage as previous in enum order.
     StageCode currentStage = switch (nextStage) {
       case CONSTRUCTION -> StageCode.INIT_DOCS;
       case FINAL_DOCS -> StageCode.CONSTRUCTION;
@@ -385,7 +384,6 @@ public class DocumentWorkflowService {
             "Cannot advance stage. Unsigned required documents: " + unsigned);
       }
     }
-    // Generation for next stage is the main outcome; caller should use generate endpoint too, but we do it here.
     generateForStage(projectId, nextStage, null, null, Map.of("initiatedBy", "advanceStage"));
   }
 

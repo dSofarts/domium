@@ -340,7 +340,8 @@ services:
     image: document-service:latest
     container_name: document-service
     build:
-      context: ./services/document-service
+      context: ./services
+      dockerfile: document-service/Dockerfile
     ports:
       - "${DOCUMENT_PORT}:8092"
     environment:
