@@ -65,19 +65,36 @@ domium/
 ---
 ## Сервисы
 
-| Сервис             | Порт (host) | Описание                     | Адрес                         |
-|--------------------|-------------|------------------------------|-------------------------------|
-| Keycloak           | 8080        | Dev-мод                      | http://localhost:8080/        |
-| Postgres           | 5432        | Контейнер `postgres`         |                               |
-| Building Service   | 8091        | Контейнер `building-service` |                               |
-| Redis              | 6379        | Кеширование                  |                               |
-| Redis insight      | 5540        | ui                           | http://localhost:5540/        |
-| Kafka              | 9092        | Шина                         |                               |
-| Kafka-UI           | 8070        | ui                           | http://localhost:8070/        |
-| Prometheus         | 9090        | Метрики                      | http://localhost:9090/        |
-| Grafana            | 3000        | Dashboard + Explore          | http://localhost:3000/        |
-| Loki               | 3100        | Хранилище логов              |                               |
-| Minio              | 9000        | Хранилище документов + Loki  | http://localhost:9001/        |
+| Сервис             | Порт (host) | Описание                     | Адрес                  |
+|--------------------|-------------|------------------------------|------------------------|
+| API Gateway        | 8090        | Gateway                      | http://localhost:8090/ |
+| Keycloak           | 8081        | Dev-мод                      | http://localhost:8081/ |
+| Postgres           | 5432        | Контейнер `postgres`         |                        |
+| Building Service   | 8091        | Контейнер `building-service` |                        |
+| Consul             | 8500        | Service Discovery            | http://localhost:8500/ |
+| Redis              | 6379        | Кеширование                  |                        |
+| Redis insight      | 5540        | ui                           | http://localhost:5540/ |
+| Kafka              | 9092        | Шина                         |                        |
+| Kafka-UI           | 8070        | ui                           | http://localhost:8070/ |
+| Prometheus         | 9090        | Метрики                      | http://localhost:9090/ |
+| Grafana            | 3000        | Dashboard + Explore          | http://localhost:3000/ |
+| Loki               | 3100        | Хранилище логов              |                        |
+| Minio              | 9000        | Хранилище документов + Loki  | http://localhost:9001/ |
+
+---
+
+## API Документация (Swagger)
+
+- **Агрегированная документация всех сервисов**: 
+  - Swagger UI: http://localhost:8090/swagger-ui.html
+  - OpenAPI JSON: http://localhost:8090/v3/api-docs/aggregated
+
+### Авторизация в Swagger UI
+
+Для выполнения запросов к защищенным API:
+1. Получите JWT токен из Keycloak (см. [API Gateway README](services/api-gateway/README.md#авторизация-в-swagger-ui))
+2. В Swagger UI нажмите кнопку **"Authorize"** и введите токен
+3. Все запросы будут выполняться с авторизацией
 
 
 Prometheus уже сконфигурирован на сбор `/actuator/prometheus`. Grafana **автопровиженит** датасорсы Prometheus/Loki/Tempo.
