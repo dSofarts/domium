@@ -1,8 +1,8 @@
 @startuml Containers
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-Person(customer, "Customer", "Заказчик")
-Person(builder, "Builder", "Строитель")
+Person(client, "Client", "Заказчик")
+Person(manager, "Manager", "Менеджер")
 
 System_Boundary(sys, "Domium Application") {
   Container(frontend, "Web PWA", "", "UI для заказчика и строителя")
@@ -23,15 +23,11 @@ System_Boundary(sys, "Domium Application") {
     Container(minio, "MinIO", "S3-compatible", "файлы документов")
   }
 
-  Container_Boundary(messaging, "Messaging") {
-    Container(kafka, "Apache Kafka", "3 brokers", "event bus: project.selected, document.signed ...")
-  }
-
-  Container(keycloak, "Keycloak", "Auth", "Users, roles (CUSTOMER/BUILDER)")
+  Container(keycloak, "Keycloak", "Auth", "Users, roles (CLIENT/MANAGER)")
 }
 
-Rel(customer, frontend, "Использует", "HTTPS")
-Rel(builder, frontend, "Использует", "HTTPS")
+Rel(client, frontend, "Использует", "HTTPS")
+Rel(manager, frontend, "Использует", "HTTPS")
 
 Rel(frontend, apiGateway, "REST / WebSocket", "/api/**, /ws/**")
 Rel(apiGateway, projectSvc, "Маршрутизирует", "HTTP")
@@ -50,11 +46,5 @@ Rel(notificationSvc, pg, "Read/Write", "JDBC")
 
 Rel(documentSvc, minio, "Upload/Download", "S3 API")
 Rel(chatSvc, redis, "Store recent messages", "Redis protocol")
-
-Rel(projectSvc, kafka, "publish project.selected", "Kafka")
-Rel(buildingSvc, kafka, "consume project.selected", "Kafka")
-Rel(documentSvc, kafka, "publish document.signed", "Kafka")
-Rel(notificationSvc, kafka, "consume events", "Kafka")
-Rel(buildingSvc, kafka, "optionally consume document.signed", "Kafka")
 
 @enduml

@@ -1,0 +1,18 @@
+plugins {
+    id 'idea'
+}
+
+subprojects {
+    group = 'ru.domium'
+    version = "$appVersion"
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://packages.confluent.io/maven/' }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.add('-parameters')
+    }
+}

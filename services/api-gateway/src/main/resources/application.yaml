@@ -36,9 +36,9 @@ spring:
         - id: buildings-service
           uri: lb://buildings
           predicates:
-            - Path=/api/buildings/**,/buildings/**
+            - Path=/api/buildings/**
           filters:
-            - RewritePath=/api/buildings/(?<segment>.*),/buildings/$\{segment}
+            - RewritePath=/api/buildings/?(?<segment>.*),/$\{segment}
       discovery:
         locator:
           enabled: true
@@ -82,7 +82,7 @@ gateway:
       - /swagger-ui.html
       - /v3/api-docs/**
       - /webjars/**
-      - /api/buildings/public/**
+      - /api/buildings/test
   server:
     url: http://localhost:8090
 
