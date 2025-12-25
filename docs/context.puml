@@ -3,8 +3,8 @@
 
 SHOW_PERSON_OUTLINE()
 
-Person(customer, "Customer", "Заказчик")
-Person(builder, "Builder", "Строитель/специалист")
+Person(client, "Client", "Заказчик")
+Person(manager, "Manager", "Менеджер/специалист")
 Person(admin, "Admin", "Администратор")
 
 System_Boundary(sys, "IJS Construction Platform") {
@@ -18,8 +18,8 @@ System_Ext(email, "Email Server", "SMTP")
 System_Ext(sms, "SMS Provider", "Twilio / Mock")
 System_Ext(push, "Push Provider", "FCM or mock")
 
-Rel(customer, frontend, "Использует", "HTTPS")
-Rel(builder, frontend, "Использует", "HTTPS")
+Rel(client, frontend, "Использует", "HTTPS")
+Rel(manager, frontend, "Использует", "HTTPS")
 Rel(admin, keycloak, "Управляет", "Web Admin UI")
 
 Rel(frontend, keycloak, "Login / Tokens", "OIDC")

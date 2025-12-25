@@ -3,3 +3,7 @@ CREATE DATABASE keycloak;
 CREATE DATABASE building;
 
 CREATE DATABASE projects;
+
+CREATE DATABASE document;
+\c document
+CREATE SCHEMA IF NOT EXISTS document;

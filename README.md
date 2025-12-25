@@ -1,18 +1,18 @@
 # DOMIUM APPLICATION
 
-**Стек**: Java 21, Spring, Kafka, Postgres, Redis, Minio, Docker Compose, Grafana + Prometheus + Loki, Keycloak.
+**Стек**: Java 21, Spring, Postgres, Redis, Minio, Docker Compose, Grafana + Prometheus + Loki, Keycloak.
 
 ---
-## Содержание
-* Архитектура
-* Состав репозитория
-* Быстрый старт
-* Порты и сервисы
-* Наблюдаемость
-* Тестирование
+### Содержание
+- Архитектура
+- Состав репозитория
+- Быстрый старт
+- Порты и сервисы
+- Наблюдаемость
+- Тестирование
 ---
-## Архитектура
-## Диаграммы архитектуры (C4 + PlantUML)
+### Архитектура
+### Диаграммы архитектуры (C4 + PlantUML)
 
 PlantUML схемы находятся в `docs/`:
 - **Context (уровень системы)** - [docs/context.puml](docs/context.puml)
@@ -24,13 +24,13 @@ PlantUML схемы находятся в `docs/`:
   ![Container (уровень контейнеров)](docs/containers.png)
 
 ---
-## Состав репозитория
+### Состав репозитория
 ```
 domium/
 ├── services/                бэкенд
 │   ├── api-gateway/
 │   ├── project-service/
-│   ├── building-service/
+│   ├── domium-building/
 │   ├── document-service/
 │   ├── chat-service/
 ├── domium-ui/                фронтенд
@@ -40,7 +40,7 @@ domium/
 ```
 
 ---
-## Быстрый старт
+### Быстрый старт
 > Требуется: **Docker** (compose), **JDK 21**, . Порты по умолчанию: 8080 (Keycloak), 8091 (Building Service), 9090 (Prometheus), 3000 (Grafana), 3100 (Loki).
 
    ```bash
@@ -55,27 +55,25 @@ domium/
 
 2. **Запуск сервисов из IDE/CLI (локально, без Docker)**
 
-    * Building Service:
+    * Building Service (domium-building):
 
       ```bash
-      cd services/building-service
-      ./gradlew bootRun   # порт 8091
+      cd services/domium-building
+      ./gradlew :app:bootRun   # порт 8091
       ```
 
 ---
-## Сервисы
+### Сервисы
 
 | Сервис             | Порт (host) | Описание                     | Адрес                  |
 |--------------------|-------------|------------------------------|------------------------|
 | API Gateway        | 8090        | Gateway                      | http://localhost:8090/ |
 | Keycloak           | 8081        | Dev-мод                      | http://localhost:8081/ |
 | Postgres           | 5432        | Контейнер `postgres`         |                        |
-| Building Service   | 8091        | Контейнер `building-service` |                        |
+| Building Service   | 8091        | Контейнер `domium-building`  |                        |
 | Consul             | 8500        | Service Discovery            | http://localhost:8500/ |
 | Redis              | 6379        | Кеширование                  |                        |
 | Redis insight      | 5540        | ui                           | http://localhost:5540/ |
-| Kafka              | 9092        | Шина                         |                        |
-| Kafka-UI           | 8070        | ui                           | http://localhost:8070/ |
 | Prometheus         | 9090        | Метрики                      | http://localhost:9090/ |
 | Grafana            | 3000        | Dashboard + Explore          | http://localhost:3000/ |
 | Loki               | 3100        | Хранилище логов              |                        |
@@ -83,7 +81,7 @@ domium/
 
 ---
 
-## API Документация (Swagger)
+### API Документация (Swagger)
 
 - **Агрегированная документация всех сервисов**: 
   - Swagger UI: http://localhost:8090/swagger-ui.html
@@ -101,7 +99,7 @@ Prometheus уже сконфигурирован на сбор `/actuator/promet
 
 ---
 
-## Наблюдаемость
+### Наблюдаемость
 
 * **Метрики**: `http://localhost:8090/actuator/prometheus`
 * **Prometheus**: `http://localhost:9090`
@@ -109,7 +107,7 @@ Prometheus уже сконфигурирован на сбор `/actuator/promet
 * **Логи**: Loki развёрнут; для доставки логов приложений используйте promtail или logback‑аппендер для Loki (в репозитории базовая конфигурация Loki уже есть).
 ---
 
-## Тестирование
+### Тестирование
 
 todo
 
