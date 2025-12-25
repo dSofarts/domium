@@ -3,7 +3,6 @@ package ru.domium.chat.entity
 import io.r2dbc.spi.Row
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 

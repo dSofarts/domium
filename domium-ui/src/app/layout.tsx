@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Manrope } from 'next/font/google'
 
+import { ThemeProvider } from '@/components/theme/ThemeProvider'
+
 import { SITE_NAME } from '@/constants/seo.constants'
 import { BASE_URL } from '@/constants/site.constants'
 
@@ -41,8 +43,18 @@ export default function RootLayout({
     <html
       lang='ru'
       data-scroll-behavior='smooth'
+      suppressHydrationWarning
     >
-      <body className={`${manropeSans.className} antialiased`}>{children}</body>
+      <body className={`${manropeSans.className} antialiased`}>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { Button } from '@/components/ui/Button'
+import { PublicProjects } from '@/components/common/PublicProjects'
 
 export const metadata: Metadata = {
   title: 'Главная страница',
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div>
-      <Button variant={'default'}>Hello World!</Button>
+    <div className='w-auto'>
+      <PublicProjects />
     </div>
   )
 }

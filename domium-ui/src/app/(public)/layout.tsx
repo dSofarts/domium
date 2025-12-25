@@ -1,11 +1,12 @@
 import { PropsWithChildren } from 'react'
 
+import { PublicHeader } from '@/components/common/layout/public/PublicHeader'
+
 export default function Layout({ children }: PropsWithChildren) {
   return (
-    <div className='min-h-screen'>
-      <div className='mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8'>
-        {children}
-      </div>
+    <div className='md:container mx-auto px-4'>
+      <PublicHeader />
+      {children}
     </div>
   )
 }
