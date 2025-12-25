@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Deprecated
 @Entity
 @Table(name = "order_participants")
 @Getter

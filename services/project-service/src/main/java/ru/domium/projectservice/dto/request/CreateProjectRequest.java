@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateProjectRequest {
     @NotNull
-    private UUID ownerUserId;
+    private UUID managerUserId;
 
     @NotBlank
     @Size(max = 255)

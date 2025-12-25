@@ -8,10 +8,13 @@ import ru.domium.projectservice.dto.request.CreateProjectRequest;
 import ru.domium.projectservice.dto.response.ProjectImageResponse;
 import ru.domium.projectservice.dto.response.ProjectResponse;
 import ru.domium.projectservice.entity.Project;
-import ru.domium.projectservice.repository.ProjectRepository;
+import ru.domium.projectservice.entity.ProjectImage;
+import ru.domium.projectservice.exception.NotFoundException;
 import ru.domium.projectservice.objectstorage.service.ImageS3Service;
+import ru.domium.projectservice.repository.ProjectRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,16 +29,25 @@ public class ProjectService {
         return mapToResponse(newProject);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProjectResponse> getAllProjects() {
         return projectRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public ProjectResponse getProjectById(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> NotFoundException.projectNotFound(projectId));
+    }
+
     private ProjectResponse mapToResponse(Project project) {
         ProjectResponse response = modelMapper.map(project, ProjectResponse.class);
-        List<ProjectImageResponse> imageResponses = project.getImages().stream()
+        List<ProjectImageResponse> imageResponses = (project.getImages() == null ?
+                List.<ProjectImage>of() : project.getImages())
+                .stream()
                 .map(image -> {
                     String objectKey = image.getStorageObjectKey();
                     String url = imageS3Service.getPublicUrlByKey(objectKey);
@@ -49,7 +61,5 @@ public class ProjectService {
     private Project mapToEntity(CreateProjectRequest dto) {
         return modelMapper.map(dto, Project.class);
     }
-
-
 }
 

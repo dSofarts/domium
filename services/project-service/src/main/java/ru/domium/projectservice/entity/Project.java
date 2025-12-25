@@ -23,8 +23,8 @@ public class Project {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "owner_user_id")
-    private UUID ownerUserId;
+    @Column(name = "manager_user_id")
+    private UUID managerUserId;
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;

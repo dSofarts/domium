@@ -6,10 +6,15 @@ import org.springframework.web.bind.annotation.*;
 import ru.domium.projectservice.dto.response.OrderParticipantResponse;
 import ru.domium.projectservice.entity.OrderParticipant;
 import ru.domium.projectservice.service.OrderParticipantService;
+import ru.domium.security.annotation.PublicEndpoint;
 
 import java.util.List;
 import java.util.UUID;
 
+/**
+Функционал с участниками проекта на стороне Building Service
+ */
+@Deprecated
 @RestController
 @RequestMapping(value = "/projects/{projectId}/orders/{orderId}/participants")
 @RequiredArgsConstructor
@@ -17,7 +22,6 @@ public class OrderParticipantController {
 
     private final OrderParticipantService orderParticipantService;
 
-//    @PreAuthorize("hasRole('OWNER')")
     @GetMapping
     public ResponseEntity<List<OrderParticipant>> getAll(@PathVariable UUID projectId,
                                                          @PathVariable UUID orderId) {
@@ -25,7 +29,6 @@ public class OrderParticipantController {
         return ResponseEntity.ok(orderParticipantService.getAll());
     }
 
-    //    @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/participants/{userId}")
     public ResponseEntity<OrderParticipantResponse> assignParticipant(@PathVariable UUID projectId,
                                                                       @PathVariable UUID orderId,
@@ -35,7 +38,6 @@ public class OrderParticipantController {
         return ResponseEntity.ok(participant);
     }
 
-    //    @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/participants/{userId}/unassign")
     public ResponseEntity<Void> unassignParticipant(@PathVariable UUID projectId,
                                                     @PathVariable UUID orderId,
@@ -46,7 +48,6 @@ public class OrderParticipantController {
     }
 
 
-    //    @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/{participantId}")
     public ResponseEntity<OrderParticipant> getById(@PathVariable UUID projectId,
                                                     @PathVariable UUID orderId,

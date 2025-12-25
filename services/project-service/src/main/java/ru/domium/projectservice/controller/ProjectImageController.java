@@ -2,6 +2,7 @@ package ru.domium.projectservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.domium.projectservice.dto.response.ProjectImageResponse;
@@ -17,7 +18,7 @@ public class ProjectImageController {
 
     private final ProjectImageService imageService;
 
-    //    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<ProjectImageResponse> addImages(@PathVariable UUID projectId,
                                                 @RequestPart("images") List<MultipartFile> images) {

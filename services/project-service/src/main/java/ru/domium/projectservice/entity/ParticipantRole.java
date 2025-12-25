@@ -1,5 +1,6 @@
 package ru.domium.projectservice.entity;
 
+@Deprecated
 public enum ParticipantRole {
     DESIGNER,
     ARCHITECT,

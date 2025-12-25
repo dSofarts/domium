@@ -13,7 +13,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: owner_user_id
+                  name: manager_user_id
                   type: UUID
                   constraints:
                     nullable: false
@@ -163,32 +163,32 @@ databaseChangeLog:
                   name: created_at
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
-        - createTable:
-            tableName: order_participants
-            columns:
-              - column:
-                  name: id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                    name: project_order_id
-                    type: UUID
-                    constraints:
-                        nullable: false
-              - column:
-                  name: user_id
-                  type: UUID
-              - column:
-                  name: participant_role
-                  type: VARCHAR(50) # ARCHITECT, MANAGER, WORKER
-              - column:
-                  name: assigned_at
-                  type: TIMESTAMP
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: unassigned_at
-                  type: TIMESTAMP
+#        - createTable:
+#            tableName: order_participants
+#            columns:
+#              - column:
+#                  name: id
+#                  type: UUID
+#                  constraints:
+#                    primaryKey: true
+#                    nullable: false
+#              - column:
+#                    name: project_order_id
+#                    type: UUID
+#                    constraints:
+#                        nullable: false
+#              - column:
+#                  name: user_id
+#                  type: UUID
+#              - column:
+#                  name: participant_role
+#                  type: VARCHAR(50) # ARCHITECT, MANAGER, WORKER
+#              - column:
+#                  name: assigned_at
+#                  type: TIMESTAMP
+#                  defaultValueComputed: CURRENT_TIMESTAMP
+#                  constraints:
+#                    nullable: false
+#              - column:
+#                  name: unassigned_at
+#                  type: TIMESTAMP
