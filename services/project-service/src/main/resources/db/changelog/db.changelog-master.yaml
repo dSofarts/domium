@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: changes/001-init.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/002-add-constraints.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/003-add-indexes.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/004-seed-demo.yaml
+      relativeToChangelogFile: true

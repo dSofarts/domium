@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-add-indexes
+      author: kirill
+      changes:
+
+        - createIndex:
+            tableName: floors
+            indexName: idx_floors_project_id
+            columns:
+              - column: { name: project_id }
+
+        - createIndex:
+            tableName: rooms
+            indexName: idx_rooms_floor_id
+            columns:
+              - column: { name: floor_id }
+
+        - createIndex:
+            tableName: project_images
+            indexName: idx_project_images_project_id
+            columns:
+              - column: { name: project_id }
+
+        - createIndex:
+            tableName: project_orders
+            indexName: idx_project_orders_project_id
+            columns:
+              - column: { name: project_id }
+
+        - createIndex:
+            tableName: project_orders
+            indexName: idx_project_orders_client_user_id
+            columns:
+              - column: { name: client_user_id }

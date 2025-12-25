@@ -1,0 +1,56 @@
+server:
+  port: ${PROJECTS_PORT:8092}
+
+spring:
+  application.name: project-service
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:projects}
+    #    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/projects
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  #  security:
+  #    oauth2:
+  #      resourceserver:
+  #        jwt:
+  #          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/domium}
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
+        ip-address: ${HOSTNAME:buildings}
+        port: ${server.port}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
+
+logging:
+  level:
+    liquibase: DEBUG
+minio:
+  bucket: projects
+  access-key: ${PROJECTS_ACCESS_KEY:project-service}
+  secret-key: ${PROJECTS_SECRET_KEY:project-service-secret}
+  region: eu-central-1
+  url: http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}

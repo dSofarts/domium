@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-constraints
+      author: kirill
+      changes:
+        # --- project_images
+        - addForeignKeyConstraint:
+            baseTableName: project_images
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            constraintName: fk_project_images_projects
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: project_images
+            columnNames: project_id, storage_object_key
+            constraintName: uq_project_images_project_object_key
+
+        - addUniqueConstraint:
+            tableName: project_images
+            columnNames: project_id, position
+            constraintName: uq_project_images_project_image_position
+
+        - sql:
+            sql: |
+              ALTER TABLE project_images
+              ADD CONSTRAINT chk_project_images_position_nonneg
+              CHECK (position >= 0);
+
+        # --- floors
+        - addForeignKeyConstraint:
+              constraintName: fk_floors_projects
+              baseTableName: floors
+              baseColumnNames: project_id
+              referencedTableName: projects
+              referencedColumnNames: id
+              onDelete: CASCADE
+
+        # --- rooms
+        - addForeignKeyConstraint:
+              constraintName: fk_rooms_floors
+              baseTableName: rooms
+              baseColumnNames: floor_id
+              referencedTableName: floors
+              referencedColumnNames: id
+              onDelete: CASCADE
+
+        # --- project_orders
+        - addForeignKeyConstraint:
+            baseTableName: project_orders
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            constraintName: fk_project_orders_projects
+            onDelete: CASCADE
+
+#        - addForeignKeyConstraint:
+#            baseTableName: order_participants
+#            baseColumnNames: project_order_id
+#            referencedTableName: project_orders
+#            referencedColumnNames: id
+#            constraintName: fk_order_participants_project_orders
+#            onDelete: CASCADE
+#
+#        - addUniqueConstraint:
+#            tableName: order_participants
+#            columnNames: project_order_id, user_id, participant_role
+#            constraintName: uq_order_participants_order_user_role

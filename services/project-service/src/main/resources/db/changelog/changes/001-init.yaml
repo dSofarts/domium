@@ -1,0 +1,194 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init
+      author: kirill
+      changes:
+        - createTable:
+            tableName: projects
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: manager_user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+#              - column:
+#                  name: architect_user_id
+#                  type: UUID
+              - column:
+                  name: project_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                    name: name
+                    type: VARCHAR(50)
+                    constraints:
+                        nullable: false
+              - column:
+                    name: category
+                    type: VARCHAR(50)
+                    constraints:
+                        nullable: false
+              - column:
+                    name: price
+                    type: NUMERIC(10,2)
+                    constraints:
+                        nullable: false
+              - column:
+                    name: material
+                    type: VARCHAR(50)
+                    constraints:
+                        nullable: false
+              - column:
+                    name: location
+                    type: VARCHAR(100)
+                    constraints:
+                        nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: publication_status
+                  type: VARCHAR(50) # DRAFT, PUBLISHED, PUBLISH_FAILED
+                  defaultValue: DRAFT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: floors
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: floor_number
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rooms
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: room_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: area
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: floor_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: project_images
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_object_key
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: position
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: project_orders
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                    name: project_id
+                    type: UUID
+                    constraints:
+                        nullable: false
+              - column:
+                    name: client_user_id
+                    type: UUID
+                    constraints:
+                        nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(50) # NEW, PENDING, STAGES..., DONE, CANCELED
+                  defaultValue: PENDING
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+#        - createTable:
+#            tableName: order_participants
+#            columns:
+#              - column:
+#                  name: id
+#                  type: UUID
+#                  constraints:
+#                    primaryKey: true
+#                    nullable: false
+#              - column:
+#                    name: project_order_id
+#                    type: UUID
+#                    constraints:
+#                        nullable: false
+#              - column:
+#                  name: user_id
+#                  type: UUID
+#              - column:
+#                  name: participant_role
+#                  type: VARCHAR(50) # ARCHITECT, MANAGER, WORKER
+#              - column:
+#                  name: assigned_at
+#                  type: TIMESTAMP
+#                  defaultValueComputed: CURRENT_TIMESTAMP
+#                  constraints:
+#                    nullable: false
+#              - column:
+#                  name: unassigned_at
+#                  type: TIMESTAMP
