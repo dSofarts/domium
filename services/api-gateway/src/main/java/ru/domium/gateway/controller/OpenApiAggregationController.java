@@ -48,6 +48,11 @@ public class OpenApiAggregationController {
                             "version", "1.0.0",
                             "description", "Объединенная документация API всех микросервисов"
                     ));
+
+                    aggregated.put("servers", List.of(Map.of(
+                            "url", gatewayServerUrl,
+                            "description", "API Gateway"
+                    )));
                     
                     Map<String, Object> paths = new HashMap<>();
                     Map<String, Object> components = new HashMap<>();
@@ -159,7 +164,7 @@ public class OpenApiAggregationController {
                 .flatMap(json -> {
                     try {
                         JsonNode doc = objectMapper.readTree(json);
-                        return Mono.just(updateServerUrls(doc, serviceName));
+                        return Mono.just(rewriteDocForGateway(doc, serviceName));
                     } catch (Exception e) {
                         log.error("Error parsing JSON from service: {}", serviceName, e);
                         return Mono.just(objectMapper.createObjectNode());
@@ -171,33 +176,103 @@ public class OpenApiAggregationController {
                     return Mono.empty();
                 });
     }
-    
-    private JsonNode updateServerUrls(JsonNode doc, String serviceName) {
+
+    private JsonNode rewriteDocForGateway(JsonNode doc, String serviceName) {
         try {
 
             JsonNode updatedDoc = objectMapper.readTree(doc.toString());
 
-            String gatewayPath = determineGatewayPath(serviceName);
+            final String gatewayPath = Optional.ofNullable(determineGatewayPath(serviceName)).orElse("");
 
-            com.fasterxml.jackson.databind.node.ArrayNode servers;
-            if (updatedDoc.has("servers")) {
-                servers = (com.fasterxml.jackson.databind.node.ArrayNode) updatedDoc.get("servers");
-                servers.removeAll();
-            } else {
-                servers = objectMapper.createArrayNode();
-                ((com.fasterxml.jackson.databind.node.ObjectNode) updatedDoc).set("servers", servers);
+            com.fasterxml.jackson.databind.node.ObjectNode docObj = (com.fasterxml.jackson.databind.node.ObjectNode) updatedDoc;
+            docObj.put("x-serviceName", serviceName);
+            docObj.put("x-gatewayPath", gatewayPath);
+
+            com.fasterxml.jackson.databind.node.ArrayNode servers = objectMapper.createArrayNode();
+            com.fasterxml.jackson.databind.node.ObjectNode server = objectMapper.createObjectNode();
+            server.put("url", gatewayServerUrl);
+            server.put("description", "API Gateway");
+            servers.add(server);
+            docObj.set("servers", servers);
+
+            if (updatedDoc.has("paths") && updatedDoc.get("paths").isObject()) {
+                com.fasterxml.jackson.databind.node.ObjectNode newPaths = objectMapper.createObjectNode();
+
+                updatedDoc.get("paths").fields().forEachRemaining(pathEntry -> {
+                    String originalPath = pathEntry.getKey();
+                    String prefixedPath = joinPaths(gatewayPath, originalPath);
+
+                    JsonNode pathItem = pathEntry.getValue();
+                    if (pathItem != null && pathItem.isObject()) {
+                        com.fasterxml.jackson.databind.node.ObjectNode pathItemObj = (com.fasterxml.jackson.databind.node.ObjectNode) pathItem.deepCopy();
+                        pathItemObj.fields().forEachRemaining(opEntry -> {
+                            String key = opEntry.getKey();
+                            if (!isHttpMethod(key)) return;
+                            JsonNode op = opEntry.getValue();
+                            if (op == null || !op.isObject()) return;
+                            com.fasterxml.jackson.databind.node.ObjectNode opObj = (com.fasterxml.jackson.databind.node.ObjectNode) op;
+
+                            if (opObj.hasNonNull("operationId")) {
+                                String opId = opObj.get("operationId").asText();
+                                opObj.put("operationId", serviceName + "_" + opId);
+                            }
+
+                            com.fasterxml.jackson.databind.node.ArrayNode newTags = objectMapper.createArrayNode();
+                            if (opObj.has("tags") && opObj.get("tags").isArray()) {
+                                opObj.get("tags").forEach(t -> {
+                                    String tag = t.asText();
+                                    newTags.add(serviceName + " :: " + tag);
+                                });
+                            } else {
+                                newTags.add(serviceName);
+                            }
+                            opObj.set("tags", newTags);
+                        });
+                        newPaths.set(prefixedPath, pathItemObj);
+                    } else {
+                        newPaths.set(prefixedPath, pathItem);
+                    }
+                });
+
+                docObj.set("paths", newPaths);
             }
 
-            com.fasterxml.jackson.databind.node.ObjectNode server = objectMapper.createObjectNode();
-            server.put("url", gatewayServerUrl + gatewayPath);
-            server.put("description", serviceName + " via API Gateway");
-            servers.add(server);
+            if (updatedDoc.has("tags") && updatedDoc.get("tags").isArray()) {
+                com.fasterxml.jackson.databind.node.ArrayNode newTags = objectMapper.createArrayNode();
+                updatedDoc.get("tags").forEach(t -> {
+                    if (t != null && t.isObject() && t.hasNonNull("name")) {
+                        com.fasterxml.jackson.databind.node.ObjectNode tagObj = t.deepCopy();
+                        String name = tagObj.get("name").asText();
+                        tagObj.put("name", serviceName + " :: " + name);
+                        newTags.add(tagObj);
+                    } else {
+                        newTags.add(t);
+                    }
+                });
+                docObj.set("tags", newTags);
+            }
             
             return updatedDoc;
         } catch (Exception e) {
-            log.warn("Failed to update server URLs for service: {}", serviceName, e);
+            log.warn("Failed to rewrite API doc for service: {}", serviceName, e);
             return doc;
         }
+    }
+
+    private static boolean isHttpMethod(String key) {
+        return switch (key.toLowerCase(Locale.ROOT)) {
+            case "get", "post", "put", "patch", "delete", "head", "options", "trace" -> true;
+            default -> false;
+        };
+    }
+
+    private static String joinPaths(String prefix, String path) {
+        if (prefix == null) prefix = "";
+        if (path == null) path = "";
+        String p = prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+        String s = path.startsWith("/") ? path : "/" + path;
+        if (p.isBlank()) return s;
+        return p + s;
     }
     
     private String determineGatewayPath(String serviceName) {

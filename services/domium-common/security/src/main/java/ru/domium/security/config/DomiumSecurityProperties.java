@@ -8,7 +8,13 @@ import java.util.List;
 @ConfigurationProperties(prefix = "domium.security")
 public class DomiumSecurityProperties {
 
-    private List<String> permitAll = new ArrayList<>();
+    private List<String> permitAll = new ArrayList<>(List.of(
+            "/actuator/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/webjars/**"
+    ));
 
     public List<String> getPermitAll() {
         return permitAll;

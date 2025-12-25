@@ -1,8 +1,8 @@
-# Domium Common Security
+### Domium Common Security
 
 Модуль безопасности для всех доменных сервисов Domium.
 
-## Описание
+### Описание
 
 Этот модуль предоставляет готовую конфигурацию безопасности для доменных сервисов:
 - Локальная валидация JWT через `issuer-uri`
@@ -10,7 +10,7 @@
 - Поддержка проверки ролей через `@PreAuthorize`
 - Утилиты для работы с JWT токенами
 
-## Использование
+### Использование
 
 #### Публикация в Maven Local
 
@@ -62,11 +62,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import ru.domium.security.util.SecurityUtils;
 
 @RestController
-@RequestMapping("/api/buildings")
+@RequestMapping
 public class BuildingController {
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('BUILDER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<BuildingDto> getBuilding(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt) {
@@ -76,19 +76,19 @@ public class BuildingController {
 }
 ```
 
-## Автоматическая конфигурация
+### Автоматическая конфигурация
 
 Модуль использует Spring Boot Auto-Configuration и автоматически настраивается при наличии:
 - Зависимостей `spring-boot-starter-security` и `spring-boot-starter-oauth2-resource-server`
 - Настройки `spring.security.oauth2.resourceserver.jwt.issuer-uri`
 
-## Компоненты
+### Компоненты
 
 - **SecurityConfig** - базовая конфигурация безопасности с JWT resource server
 - **JwtRoleConverter** - преобразование ролей из Keycloak в Spring Security authorities
 - **SecurityUtils** - утилиты для работы с JWT токенами
 
-## Переопределение конфигурации
+### Переопределение конфигурации
 
 Если нужно переопределить конфигурацию безопасности, создайте свой `SecurityConfig` с аннотацией `@Configuration` и `@Primary`, или отключите auto-configuration:
 
