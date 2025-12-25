@@ -371,7 +371,8 @@ services:
       - "${PROJECTS_PORT}:8080"
       - "5006:5005"
     build:
-      context: ./services/project-service
+      context: ./services
+      dockerfile: project-service/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
       POSTGRES_HOST: postgres
