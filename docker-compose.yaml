@@ -49,7 +49,22 @@ services:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: ${HEALTHCHECK_INTERVAL}
       retries: ${HEALTHCHECK_RETRIES}
-
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
+      mc mb --ignore-existing local/templates &&
+      mc mb --ignore-existing local/documents
+      "
+    restart: "no"
   create-loki-bucket:
     image: minio/mc
     container_name: create-loki-bucket
@@ -320,6 +335,31 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
+
+  document-service:
+    image: document-service:latest
+    container_name: document-service
+    build:
+      context: ./services
+      dockerfile: document-service/Dockerfile
+    ports:
+      - "${DOCUMENT_PORT}:8092"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DOCUMENT_PORT: 8092
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
 volumes:
   grafana-storage:
