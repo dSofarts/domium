@@ -36,12 +36,13 @@ domium/
 ├── domium-ui/                фронтенд
 ├── infra/                    конфигурации Grafana/Prometheus/Tempo/Loki/Keycloak и инициализация бд.
 ├── docs/                     диаграммы
-├─ docker-compose.yml         инфраструктура + сервисы
+├─ docker-compose.yaml        инфраструктура + сервисы
 ```
 
 ---
 ### Быстрый старт
-> Требуется: **Docker** (compose), **JDK 21**, . Порты по умолчанию: 8080 (Keycloak), 8091 (Building Service), 9090 (Prometheus), 3000 (Grafana), 3100 (Loki).
+> Требуется: **Docker** (compose), **JDK 21** (если запускать сервисы локально из IDE).
+> Порты по умолчанию: 8081 (Keycloak), 8090 (API Gateway), 8091 (Building Service), 8092 (Document Service), 9090 (Prometheus), 3000 (Grafana), 3100 (Loki), 3001 (Domium UI).
 
    ```bash
    docker compose up -d
@@ -67,10 +68,12 @@ domium/
 
 | Сервис             | Порт (host) | Описание                     | Адрес                  |
 |--------------------|-------------|------------------------------|------------------------|
+| Domium UI          | 3001        | Контейнер `domium-ui`        | http://localhost:3001/ |
 | API Gateway        | 8090        | Gateway                      | http://localhost:8090/ |
 | Keycloak           | 8081        | Dev-мод                      | http://localhost:8081/ |
 | Postgres           | 5432        | Контейнер `postgres`         |                        |
 | Building Service   | 8091        | Контейнер `domium-building`  |                        |
+| Document Service   | 8092        | Контейнер `document-service` |                        |
 | Consul             | 8500        | Service Discovery            | http://localhost:8500/ |
 | Redis              | 6379        | Кеширование                  |                        |
 | Redis insight      | 5540        | ui                           | http://localhost:5540/ |

@@ -17,7 +17,9 @@
     <!-- Логи Spring Framework -->
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.springframework.cloud.gateway" level="DEBUG"/>
-    <logger name="org.springframework.security" level="DEBUG"/>
+    <logger name="org.springframework.cloud.gateway.route" level="DEBUG"/>
+    <logger name="org.springframework.cloud.client.discovery" level="DEBUG"/>
+    <logger name="org.springframework.security" level="INFO"/>
 
     <!-- Root logger -->
     <root level="INFO">

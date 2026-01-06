@@ -34,7 +34,7 @@ import ru.domium.security.util.SecurityUtils;
 )
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/documents")
+@RequestMapping
 public class DocumentController {
 
   private final DocumentWorkflowService workflow;

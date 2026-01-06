@@ -2,7 +2,7 @@ server:
   port: ${PROJECTS_PORT:8092}
 
 spring:
-  application.name: project-service
+  application.name: projects
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:projects}
     #    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/projects
@@ -17,11 +17,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-  #  security:
-  #    oauth2:
-  #      resourceserver:
-  #        jwt:
-  #          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/domium}
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
@@ -34,16 +29,6 @@ spring:
         instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
         ip-address: ${HOSTNAME:buildings}
         port: ${server.port}
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    operations-sorter: method
-    tags-sorter: alpha
-  show-actuator: false
 
 logging:
   level:

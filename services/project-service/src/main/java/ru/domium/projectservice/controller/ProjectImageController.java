@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-//import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.domium.projectservice.dto.response.ProjectImageResponse;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/projects/{projectId}/images")
+@RequestMapping("{projectId}/images")
 @RequiredArgsConstructor
 @Tag(name = "Project Images", description = "API для управления изображениями проекта")
 public class ProjectImageController {
@@ -45,7 +45,7 @@ public class ProjectImageController {
             @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
             @ApiResponse(responseCode = "404", description = "Проект не найден")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<ProjectImageResponse> addImages(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")

@@ -10,6 +10,7 @@ public class DomiumSecurityProperties {
 
     private List<String> permitAll = new ArrayList<>(List.of(
             "/actuator/**",
+            "/v3/api-docs",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

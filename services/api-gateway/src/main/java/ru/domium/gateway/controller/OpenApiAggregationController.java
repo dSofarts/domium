@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +26,6 @@ public class OpenApiAggregationController {
 
     private final WebClient webClient;
     private final DiscoveryClient discoveryClient;
-    private final RouteDefinitionLocator routeDefinitionLocator;
     
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -131,7 +128,7 @@ public class OpenApiAggregationController {
 
     private Flux<JsonNode> collectAllApiDocs() {
         List<String> services = discoveryClient.getServices().stream()
-                .filter(service -> !service.equals("api-gateway"))
+                .filter(service -> !service.equals("api-gateway") && !service.equals("consul"))
                 .collect(Collectors.toList());
 
         log.info("Found services for API docs aggregation: {}", services);
@@ -182,7 +179,7 @@ public class OpenApiAggregationController {
 
             JsonNode updatedDoc = objectMapper.readTree(doc.toString());
 
-            final String gatewayPath = Optional.ofNullable(determineGatewayPath(serviceName)).orElse("");
+            final String gatewayPath = "/api/" + serviceName.toLowerCase();
 
             com.fasterxml.jackson.databind.node.ObjectNode docObj = (com.fasterxml.jackson.databind.node.ObjectNode) updatedDoc;
             docObj.put("x-serviceName", serviceName);
@@ -273,52 +270,5 @@ public class OpenApiAggregationController {
         String s = path.startsWith("/") ? path : "/" + path;
         if (p.isBlank()) return s;
         return p + s;
-    }
-    
-    private String determineGatewayPath(String serviceName) {
-        try {
-            List<RouteDefinition> routeDefinitions = routeDefinitionLocator.getRouteDefinitions()
-                    .collectList()
-                    .block(java.time.Duration.ofSeconds(2));
-            
-            if (routeDefinitions != null) {
-                String serviceUri = "lb://" + serviceName.toLowerCase();
-
-                for (RouteDefinition routeDefinition : routeDefinitions) {
-                    String routeUri = routeDefinition.getUri().toString();
-
-                    if (routeUri.equalsIgnoreCase(serviceUri) || routeUri.equals("lb://" + serviceName)) {
-                        Optional<String> path = routeDefinition.getPredicates().stream()
-                                .filter(p -> "Path".equals(p.getName()))
-                                .map(p -> {
-                                    Map<String, String> args = p.getArgs();
-                                    if (args != null && !args.isEmpty()) {
-                                        String pathValue = args.values().stream()
-                                                .filter(v -> v != null && v.startsWith("/"))
-                                                .findFirst()
-                                                .orElse(null);
-                                        
-                                        if (pathValue != null) {
-                                            return pathValue.replace("/**", "").replace("/*", "");
-                                        }
-                                    }
-                                    return null;
-                                })
-                                .filter(Objects::nonNull)
-                                .findFirst();
-                        
-                        if (path.isPresent()) {
-                            log.debug("Found custom path for service {}: {}", serviceName, path.get());
-                            return path.get();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Failed to determine gateway path from route definitions for service: {}", serviceName, e);
-        }
-
-        log.debug("Using auto-discovered path for service {}: /{}", serviceName, serviceName.toLowerCase());
-        return "/" + serviceName.toLowerCase();
     }
 }
