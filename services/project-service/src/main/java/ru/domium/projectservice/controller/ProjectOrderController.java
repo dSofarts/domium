@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.domium.projectservice.dto.response.ProjectOrderResponse;
 import ru.domium.projectservice.dto.response.ProjectResponse;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/projects/{projectId}/orders")
+@RequestMapping("{projectId}/orders")
 @RequiredArgsConstructor
 @Tag(name = "Project Orders", description = "API для управления заказами на проекты")
 public class ProjectOrderController {
@@ -44,7 +44,7 @@ public class ProjectOrderController {
             @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
             @ApiResponse(responseCode = "404", description = "Проект не найден")
     })
-//    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping
     public ResponseEntity<ProjectOrderResponse> placeOrder(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
@@ -70,7 +70,7 @@ public class ProjectOrderController {
             ),
             @ApiResponse(responseCode = "403", description = "Недостаточно прав")
     })
-//    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/my")
     public ResponseEntity<List<ProjectResponse>> getPersonalOrders(
             @Parameter(description = "ID проекта", required = true)
@@ -99,7 +99,7 @@ public class ProjectOrderController {
             @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
             @ApiResponse(responseCode = "404", description = "Заказ не найден")
     })
-//    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/my/{orderId}")
     public ResponseEntity<ProjectOrder> getPersonalOrderById(
             @Parameter(description = "ID проекта", required = true)
@@ -132,7 +132,7 @@ public class ProjectOrderController {
             ),
             @ApiResponse(responseCode = "403", description = "Недостаточно прав")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping
     public ResponseEntity<List<ProjectOrder>> getAllOrders(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
@@ -160,7 +160,7 @@ public class ProjectOrderController {
             @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
             @ApiResponse(responseCode = "404", description = "Заказ не найден")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/{orderId}")
     public ResponseEntity<ProjectOrder> getOrderById(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")

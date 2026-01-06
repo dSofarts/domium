@@ -1,7 +1,7 @@
 FROM gradle:8.14.0-jdk21 AS lib-builder
 WORKDIR /app
 COPY --chown=gradle:gradle domium-common /app/domium-common
-RUN cd domium-common && gradle :security:publishToMavenLocal -x test --no-daemon
+RUN cd domium-common && gradle :security:publishToMavenLocal :openapi:publishToMavenLocal -x test --no-daemon
 
 FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /build

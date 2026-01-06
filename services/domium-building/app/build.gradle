@@ -20,12 +20,9 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set('springCloudVersion', "2025.0.0")
-}
-
 dependencies {
     implementation 'ru.domium:security:1.0.0'
+    implementation 'ru.domium:openapi:1.0.0'
     implementation project(':api')
     
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -38,7 +35,6 @@ dependencies {
 
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "net.logstash.logback:logstash-logback-encoder:$logstashVersion"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0"
 
     compileOnly "org.projectlombok:lombok"
     compileOnly "org.mapstruct:mapstruct:$mapstructVersion"

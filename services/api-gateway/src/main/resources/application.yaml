@@ -15,35 +15,40 @@ spring:
         health-check-interval: 10s
         instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "http://localhost:3001"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
-            maxAge: 3600
-      routes:
-        - id: buildings-service
-          uri: lb://buildings
-          predicates:
-            - Path=/api/buildings/**
-          filters:
-            - RewritePath=/api/buildings/?(?<segment>.*),/$\{segment}
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-          filters: [ ]
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:3000"
+                  - "http://localhost:3001"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+              include-expression: "serviceId != 'api-gateway' && serviceId != 'consul'"
+              route-id-prefix: api-
+              predicates:
+                - name: Path
+                  args:
+                    pattern: "'/api/' + serviceId + '/**'"
+              filters:
+                - name: RewritePath
+                  args:
+                    regexp: "'/api/' + serviceId + '/?(.*)'"
+                    replacement: "'/$1'"
   security:
     oauth2:
       resourceserver:
@@ -82,7 +87,6 @@ gateway:
       - /swagger-ui.html
       - /v3/api-docs/**
       - /webjars/**
-      - /api/buildings/test
   server:
     url: http://localhost:8090
 
@@ -90,4 +94,4 @@ logging:
   level:
     ru.domium.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
