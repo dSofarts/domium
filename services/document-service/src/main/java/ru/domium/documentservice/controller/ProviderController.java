@@ -68,7 +68,7 @@ public class ProviderController {
       ),
       description = "Multipart-запрос с PDF файлом и опциональным комментарием"
   )
-  @PreAuthorize("hasRole('BUILDER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @PostMapping(value = "/documents/{documentId}/uploadNewVersion",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public DocumentInstanceDto uploadNewVersion(@PathVariable UUID documentId,
@@ -103,7 +103,7 @@ public class ProviderController {
   )
   @Parameter(
       name = "stageCode",
-      description = "Этап проекта (INIT_DOCS, CONSTRUCTION, FINAL_DOCS)",
+      description = "UUID этапа проекта",
       required = true
   )
   @Parameter(
@@ -128,12 +128,12 @@ public class ProviderController {
       ),
       description = "Multipart-запрос с PDF файлом и опциональным комментарием"
   )
-  @PreAuthorize("hasRole('BUILDER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @PostMapping(value = "/projects/{projectId}/documents/manualUpload",
   consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public DocumentInstanceDto manualUpload(@PathVariable UUID projectId,
       @RequestPart("file") MultipartFile file,
-      @RequestParam("stageCode") StageCode stageCode,
+      @RequestParam("stageCode") UUID stageCode,
       @RequestParam(name = "groupId", required = false) UUID groupId,
       @RequestParam(name = "userId") UUID userId,
       @RequestParam(name = "title", required = false) String title,
@@ -144,18 +144,4 @@ public class ProviderController {
     return DocumentMapper.toDto(doc);
   }
 
-
-  /**
-   * @deprecated
-   * Эндпоинт не нужен сейчас, в будущем возможно
-   * Под удаление
-   */
-  @Deprecated(since = "2025-12", forRemoval = true)
-  @PreAuthorize("hasRole('BUILDER')")
-  @PostMapping("/projects/{projectId}/advanceStage")
-  public void advanceStage(@PathVariable UUID projectId, @RequestBody AdvanceStageRequest body, @AuthenticationPrincipal Jwt jwt) {
-    authz.assertProvider(jwt);
-    UUID providerId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
-    workflow.advanceStage(projectId, body.nextStage(), providerId);
-  }
 }

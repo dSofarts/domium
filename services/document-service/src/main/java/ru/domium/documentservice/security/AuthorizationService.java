@@ -12,7 +12,7 @@ public class AuthorizationService {
 
   public void assertCanReadDocument(Jwt jwt, DocumentInstance doc) {
     if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(jwt, "builder") || hasRole(jwt, "admin")) return;
+    if (hasRole(jwt, "manager") || hasRole(jwt, "admin")) return;
     String currentUserId = SecurityUtils.getCurrentUserId(jwt);
     if(currentUserId == null || currentUserId.isBlank())
       throw ApiExceptions.forbidden("Unauthenticated");
@@ -36,8 +36,8 @@ public class AuthorizationService {
 
   public void assertProvider(Jwt jwt) {
     if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
-    if (hasRole(jwt, "builder") || hasRole(jwt, "admin")) return;
-    throw ApiExceptions.forbidden("Builder role required");
+    if (hasRole(jwt, "manager") || hasRole(jwt, "admin")) return;
+    throw ApiExceptions.forbidden("Manager role required");
   }
 
   private boolean hasRole(Jwt jwt, String role) {

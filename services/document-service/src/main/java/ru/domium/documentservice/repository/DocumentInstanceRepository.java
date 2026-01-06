@@ -21,7 +21,7 @@ public interface DocumentInstanceRepository extends JpaRepository<DocumentInstan
       + "and (:groupType is null or g.type = :groupType)")
   List<DocumentInstance> findForProject(@Param("projectId") UUID projectId,
                                        @Param("status") DocumentStatus status,
-                                       @Param("stage") StageCode stage,
+                                       @Param("stage") UUID stage,
                                        @Param("groupType") DocumentGroupType groupType);
 
   @Query("select d from DocumentInstance d left join d.group g where d.projectId = :projectId and d.userId = :userId "
@@ -31,13 +31,13 @@ public interface DocumentInstanceRepository extends JpaRepository<DocumentInstan
   List<DocumentInstance> findForProjectAndUser(@Param("projectId") UUID projectId,
                                               @Param("userId") UUID userId,
                                               @Param("status") DocumentStatus status,
-                                              @Param("stage") StageCode stage,
+                                              @Param("stage") UUID stage,
                                               @Param("groupType") DocumentGroupType groupType);
 
   List<DocumentInstance> findAllByGroup_Id(UUID groupId);
 
   @Query("select count(d) from DocumentInstance d where d.projectId = :projectId and d.stageCode = :stage and d.template is not null and d.template.required = true and d.status <> 'SIGNED'")
-  long countUnsignedRequiredForStage(@Param("projectId") UUID projectId, @Param("stage") StageCode stage);
+  long countUnsignedRequiredForStage(@Param("projectId") UUID projectId, @Param("stage") UUID stage);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select d from DocumentInstance d where d.id = :id")

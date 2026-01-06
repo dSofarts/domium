@@ -185,7 +185,7 @@ class DocumentWorkflowServiceTest {
       assertSame(doc, fv.getDocument());
       assertEquals(2, fv.getVersion());
       assertEquals("new-file-id", fv.getFileStorageId());
-      assertEquals(ActorType.BUILDER, fv.getCreatedByType());
+      assertEquals(ActorType.MANAGER, fv.getCreatedByType());
       assertEquals(providerId, fv.getCreatedById());
 
       verify(docRepo).save(docSaveCap.capture());
@@ -208,7 +208,7 @@ class DocumentWorkflowServiceTest {
 
       DocumentAuditLog versionUpdated = audits.stream()
           .filter(a -> a.getAction() == AuditAction.VERSION_UPDATED).findFirst().orElseThrow();
-      assertEquals(ActorType.BUILDER, versionUpdated.getActorType());
+      assertEquals(ActorType.MANAGER, versionUpdated.getActorType());
       assertEquals(providerId, versionUpdated.getActorId());
       assertEquals(2, versionUpdated.getPayloadJson().get("version").asInt());
 
@@ -261,7 +261,7 @@ class DocumentWorkflowServiceTest {
       verify(commentRepo).save(commentCap.capture());
       DocumentComment c = commentCap.getValue();
       assertSame(doc, c.getDocument());
-      assertEquals(CommentAuthorType.PROVIDER, c.getAuthorType());
+      assertEquals(CommentAuthorType.MANAGER, c.getAuthorType());
       assertEquals(providerId, c.getAuthorId());
       assertEquals("hello", c.getText());
 
@@ -284,7 +284,7 @@ class DocumentWorkflowServiceTest {
     void shouldThrowBadRequest_whenFileIsNull() {
       ResponseStatusException ex = assertThrows(
           ResponseStatusException.class,
-          () -> service.manualUpload(UUID.randomUUID(), UUID.randomUUID(), StageCode.INIT_DOCS,
+          () -> service.manualUpload(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
               null, UUID.randomUUID(), null, "t")
       );
 
@@ -299,7 +299,7 @@ class DocumentWorkflowServiceTest {
 
       ResponseStatusException ex = assertThrows(
           ResponseStatusException.class,
-          () -> service.manualUpload(UUID.randomUUID(), UUID.randomUUID(), StageCode.INIT_DOCS,
+          () -> service.manualUpload(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
               null, UUID.randomUUID(), empty, "t")
       );
 
@@ -318,7 +318,7 @@ class DocumentWorkflowServiceTest {
 
       ResponseStatusException ex = assertThrows(
           ResponseStatusException.class,
-          () -> service.manualUpload(projectId, UUID.randomUUID(), StageCode.INIT_DOCS,
+          () -> service.manualUpload(projectId, UUID.randomUUID(), UUID.randomUUID(),
               groupId, UUID.randomUUID(), file, "t")
       );
 
@@ -345,7 +345,7 @@ class DocumentWorkflowServiceTest {
 
       ResponseStatusException ex = assertThrows(
           ResponseStatusException.class,
-          () -> service.manualUpload(projectId, UUID.randomUUID(), StageCode.INIT_DOCS,
+          () -> service.manualUpload(projectId, UUID.randomUUID(), UUID.randomUUID(),
               groupId, UUID.randomUUID(), file, "t")
       );
 
@@ -367,7 +367,7 @@ class DocumentWorkflowServiceTest {
 
       ResponseStatusException ex = assertThrows(
           ResponseStatusException.class,
-          () -> service.manualUpload(projectId, providerId, StageCode.INIT_DOCS,
+          () -> service.manualUpload(projectId, providerId, UUID.randomUUID(),
               null, userId, file, "title")
       );
 
@@ -383,6 +383,7 @@ class DocumentWorkflowServiceTest {
       UUID projectId = UUID.randomUUID();
       UUID providerId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      UUID stageCode = UUID.randomUUID();
 
       MultipartFile file = new MockMultipartFile("file", "a.pdf", "application/pdf", "content".getBytes());
 
@@ -402,7 +403,7 @@ class DocumentWorkflowServiceTest {
       try {
         Instant before = Instant.now();
         DocumentInstance created = service.manualUpload(
-            projectId, providerId, StageCode.INIT_DOCS, null, userId, file, "My Title"
+            projectId, providerId, stageCode, null, userId, file, "My Title"
         );
         Instant after = Instant.now();
 
@@ -412,7 +413,7 @@ class DocumentWorkflowServiceTest {
         assertNull(saved.getGroup());
         assertEquals(projectId, saved.getProjectId());
         assertEquals(userId, saved.getUserId());
-        assertEquals(StageCode.INIT_DOCS, saved.getStageCode());
+        assertEquals(stageCode, saved.getStageCode());
         assertEquals(DocumentStatus.SENT_TO_USER, saved.getStatus());
         assertEquals(1, saved.getVersion());
         assertEquals("fid", saved.getCurrentFileStorageId());
@@ -425,7 +426,7 @@ class DocumentWorkflowServiceTest {
         assertSame(created, fv.getDocument());
         assertEquals(1, fv.getVersion());
         assertEquals("fid", fv.getFileStorageId());
-        assertEquals(ActorType.BUILDER, fv.getCreatedByType());
+        assertEquals(ActorType.MANAGER, fv.getCreatedByType());
         assertEquals(providerId, fv.getCreatedById());
 
         verify(auditRepo, times(2)).save(auditCap.capture());
@@ -473,7 +474,7 @@ class DocumentWorkflowServiceTest {
 
       TransactionSynchronizationManager.initSynchronization();
       try {
-        service.manualUpload(projectId, providerId, StageCode.CONSTRUCTION, groupId, userId, file, "t");
+        service.manualUpload(projectId, providerId, UUID.randomUUID(), groupId, userId, file, "t");
 
         List<TransactionSynchronization> syncs = TransactionSynchronizationManager.getSynchronizations();
         assertEquals(1, syncs.size());

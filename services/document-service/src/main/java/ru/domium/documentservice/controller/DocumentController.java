@@ -103,8 +103,8 @@ public class DocumentController {
     var doc = workflow.getDocument(documentId);
     authz.assertCanReadDocument(jwt, doc);
 
-    ActorType actorType = (hasRole(jwt, "builder") || hasRole(jwt, "admin"))
-        ? ActorType.BUILDER : ActorType.CLIENT;
+    ActorType actorType = (hasRole(jwt, "manager") || hasRole(jwt, "admin"))
+        ? ActorType.MANAGER : ActorType.CLIENT;
     UUID actorId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
 
     InputStream is = workflow.loadDocumentFile(documentId, markViewed, actorType, actorId);

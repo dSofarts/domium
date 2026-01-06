@@ -11,13 +11,13 @@ public final class DocumentDtos {
 
   public record GroupInfo(UUID id, DocumentGroupType type, String title, UUID rootDocumentId) {}
 
-  public record TemplateInfo(UUID id, String code, String name, boolean required, StageCode stageCode) {}
+  public record TemplateInfo(UUID id, String code, String name, boolean required, UUID stageCode) {}
 
   public record DocumentInstanceDto(
       UUID id,
       UUID projectId,
       UUID userId,
-      StageCode stageCode,
+      UUID stageCode,
       DocumentStatus status,
       int version,
       Instant createdAt,
@@ -46,5 +46,5 @@ public final class DocumentDtos {
 
   public record RejectRequest(String comment) {}
 
-  public record AdvanceStageRequest(StageCode nextStage) {}
+  public record AdvanceStageRequest(UUID nextStage) {}
 }
