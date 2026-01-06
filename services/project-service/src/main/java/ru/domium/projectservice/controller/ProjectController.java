@@ -10,9 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.security.core.annotation.AuthenticationPrincipal;
-//import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.domium.projectservice.dto.request.CreateProjectRequest;
 import ru.domium.projectservice.dto.response.ProjectResponse;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/projects")
+@RequestMapping
 @RequiredArgsConstructor
 @Tag(name = "Project", description = "API для управления проектами")
 public class ProjectController {
@@ -43,16 +43,16 @@ public class ProjectController {
             @ApiResponse(responseCode = "400", description = "Некорректные данные запроса"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещён")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@io.swagger.v3.oas.annotations.parameters.RequestBody(
                                                                  description = "Данные для создания проекта",
                                                                  required = true)
-                                                         @RequestBody @Valid CreateProjectRequest request
-//                                                         @Parameter(
-//                                                                 description = "JWT токен текущего пользователя",
-//                                                                 hidden = true)
-//                                                         @AuthenticationPrincipal Jwt jwt
+                                                         @RequestBody @Valid CreateProjectRequest request,
+                                                         @Parameter(
+                                                                 description = "JWT токен текущего пользователя",
+                                                                 hidden = true)
+                                                         @AuthenticationPrincipal Jwt jwt
     ) {
         ProjectResponse created = projectService.createProject(request);
         URI location = URI.create("/projects/" + created.getId());
@@ -75,7 +75,7 @@ public class ProjectController {
             @ApiResponse(responseCode = "404", description = "Проект не найден"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещён")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> updateProject(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
@@ -100,7 +100,7 @@ public class ProjectController {
             @ApiResponse(responseCode = "404", description = "Проект не найден"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещён")
     })
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{projectId}")
     public ResponseEntity<Void> deleteProject(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
@@ -120,7 +120,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ProjectResponse.class))
             )
     })
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public ResponseEntity<List<ProjectResponse>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
@@ -138,7 +138,7 @@ public class ProjectController {
             ),
             @ApiResponse(responseCode = "404", description = "Проект не найден")
     })
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> getProjectById(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
@@ -156,7 +156,7 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Не реализовано (заглушка)")
     })
-//    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/{projectId}/like")
     public ResponseEntity<Void> likeProject(@PathVariable String projectId) {
 //        TODO: Implementation for liking a project would go here
@@ -172,7 +172,7 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Не реализовано (заглушка)")
     })
-//    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/{projectId}/unlike")
     public ResponseEntity<Void> unlikeProject(@PathVariable String projectId) {
 //        TODO: Implementation for unliking a project would go here

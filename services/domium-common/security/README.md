@@ -40,15 +40,26 @@ dependencies {
 
 ### 3. Настройка application.yaml
 
-В `application.yaml` сервиса добавьте:
+**Настройка `issuer-uri` определяется автоматически!** Настройка в `application.yaml` **не требуется**.
 
+Модуль автоматически применяет дефолтную конфигурацию:
 ```yaml
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/domium}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8081/realms/domium}
+```
+
+Если нужно переопределить значение, добавьте в `application.yaml`:
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://your-keycloak-host:8080/realms/domium}
 ```
 
 **Примечание:** Проверка публичных путей выполняется на стороне gateway, поэтому в сервисах все запросы (кроме `/actuator/**`) требуют аутентификации.

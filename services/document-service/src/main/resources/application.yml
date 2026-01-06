@@ -3,7 +3,18 @@ server:
 
 spring:
   application:
-    name: document-service
+    name: documents
+
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
 
   datasource:
     url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${DOCUMENT_POSTGRES_DB:document}
@@ -28,12 +39,6 @@ spring:
     default-schema: document
     liquibase-schema: document
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/domium}
-
 management:
   endpoints:
     web:
@@ -56,10 +61,3 @@ logging:
   level:
     org.springframework.web: DEBUG
 
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-    tagsSorter: alpha

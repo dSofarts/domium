@@ -66,7 +66,7 @@ public class BuildingController {
     }
 
     @Operation(summary = "Список строек текущего пользователя (CLIENT/MANAGER)")
-    @GetMapping("/me")
+    @GetMapping
     @PreAuthorize("hasAnyRole('CLIENT','MANAGER')")
     public ResponseEntity<List<ProjectDto>> getMyBuildings(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = SecurityUtils.requireSubjectUuid(jwt);

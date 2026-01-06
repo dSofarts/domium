@@ -1,6 +1,6 @@
 spring:
   application:
-    name: document-service
+    name: documents
 
   datasource:
     url: jdbc:postgresql://localhost:5432/document
@@ -26,11 +26,6 @@ spring:
     default-schema: document
     liquibase-schema: document
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/domium}
 server:
   port: 8092
   forward-headers-strategy: framework
@@ -62,12 +57,6 @@ minio:
   buckets:
     templates: templates
     documents: documents
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-    tagsSorter: alpha
+
 
 

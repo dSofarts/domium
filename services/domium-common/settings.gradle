@@ -1,4 +1,5 @@
 rootProject.name = 'domium-common'
 
 include 'security'
+include 'openapi'
 
