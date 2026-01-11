@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,13 +23,14 @@ import ru.domium.documentservice.service.DocumentWorkflowService;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.domium.openapi.config.DomiumOpenApiAutoConfiguration;
 import ru.domium.security.util.SecurityUtils;
 
 @Tag(
-    name = "Provider / Documents",
+    name = "Manager / Documents",
     description = "Операции поставщика: загрузка и обновление документов"
 )
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = DomiumOpenApiAutoConfiguration.SECURITY_SCHEME_NAME)
 @RestController
 @RequestMapping("/provider")
 public class ProviderController {
@@ -87,14 +89,13 @@ public class ProviderController {
         Загрузка уникального документа вручную.
         Документ может быть привязан к группе договора.
         Отправляется пользователю сразу после загрузки.
-        Доступно только для роли PROVIDER / ADMIN.
+        Доступно только для роли MANAGER / ADMIN.
         """
   )
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Документ успешно загружен"),
       @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
       @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
-      @ApiResponse(responseCode = "404", description = "Проект или группа не найдены")
   })
   @Parameter(
       name = "projectId",
@@ -115,11 +116,6 @@ public class ProviderController {
       name = "userId",
       description = "UUID пользователя, которому адресован документ",
       required = true
-  )
-  @Parameter(
-      name = "title",
-      description = "Отображаемое название документа (опционально)",
-      required = false
   )
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
       required = true,
@@ -144,4 +140,38 @@ public class ProviderController {
     return DocumentMapper.toDto(doc);
   }
 
+  @Operation(
+      summary = "Теневое удаление документа",
+      description = """
+      Помечает документ статусом DELETE.
+      Документ перестает попадать в списки и становится недоступен через read-эндпоинты,
+      но запись в БД и файл в Minio остаются.
+      Доступно только для роли MANAGER / ADMIN.
+      """
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Документ помечен как удалён"),
+      @ApiResponse(responseCode = "403", description = "Недостаточно прав"),
+      @ApiResponse(responseCode = "404", description = "Документ не найден")
+  })
+  @Parameter(
+      name = "documentId",
+      description = "UUID документа",
+      required = true
+  )
+  @Parameter(
+      name = "comment",
+      description = "Комментарий к удалению (опционально)",
+      required = false
+  )
+  @PreAuthorize("hasRole('MANAGER')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping("/documents/{documentId}")
+  public void softDelete(@PathVariable UUID documentId,
+      @RequestParam(name = "comment", required = false) String comment,
+      @AuthenticationPrincipal Jwt jwt) {
+    authz.assertProvider(jwt);
+    UUID providerId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
+    workflow.softDelete(documentId, providerId, comment);
+  }
 }

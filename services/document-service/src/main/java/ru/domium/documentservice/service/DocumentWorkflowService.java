@@ -92,13 +92,41 @@ public class DocumentWorkflowService {
       UUID actorId) {
     DocumentInstance doc = docRepo.findByIdForUpdate(documentId)
         .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
-    if (markViewed && doc.getStatus() == DocumentStatus.SENT_TO_USER) {
+    boolean isOwnerClient =
+        actorType == ActorType.CLIENT
+            && actorId != null
+            && actorId.equals(doc.getUserId());
+
+    if (markViewed && isOwnerClient && doc.getStatus() == DocumentStatus.SENT_TO_USER) {
       doc.setStatus(DocumentStatus.VIEWED);
       doc.setViewedAt(Instant.now());
       docRepo.save(doc);
       audit(doc, actorType, actorId, AuditAction.VIEWED, json());
     }
     return storage.load(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId());
+  }
+
+  @Transactional
+  public DocumentInstance softDelete(UUID documentId, UUID providerId, String comment){
+    DocumentInstance doc = docRepo.findByIdForUpdate(documentId)
+        .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
+    if (doc.getStatus() == DocumentStatus.DELETE) {
+      return doc;
+    }
+    doc.setStatus(DocumentStatus.DELETE);
+    docRepo.save(doc);
+    if (comment != null && !comment.isBlank()) {
+      DocumentComment c = new DocumentComment();
+      c.setDocument(doc);
+      c.setAuthorType(CommentAuthorType.MANAGER);
+      c.setAuthorId(providerId);
+      c.setText(comment);
+      commentRepo.save(c);
+      audit(doc, ActorType.MANAGER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
+    }
+
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.DELETED, json());
+    return doc;
   }
 
   @Transactional

@@ -18,13 +18,14 @@ import ru.domium.documentservice.service.DocumentMapper;
 import ru.domium.documentservice.service.DocumentWorkflowService;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
+import ru.domium.openapi.config.DomiumOpenApiAutoConfiguration;
 import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Project / Documents",
     description = "Список документов проекта с фильтрацией"
 )
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = DomiumOpenApiAutoConfiguration.SECURITY_SCHEME_NAME)
 @RestController
 @RequestMapping("/projects/{projectId}/documents")
 public class ProjectDocumentsController {
