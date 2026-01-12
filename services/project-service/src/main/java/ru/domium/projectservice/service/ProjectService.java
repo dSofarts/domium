@@ -27,7 +27,6 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final ImageS3Service imageS3Service;
 
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest dto, UUID projectCreatorId) {

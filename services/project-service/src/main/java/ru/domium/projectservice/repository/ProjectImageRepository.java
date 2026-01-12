@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Repository
 public interface ProjectImageRepository extends JpaRepository<ProjectImage, UUID> {
-    List<ProjectImage> findAllByProject_Id(UUID projectId);
 
     List<ProjectImage> findAllByIdInAndProject_Id(Collection<UUID> ids, UUID projectId);
 

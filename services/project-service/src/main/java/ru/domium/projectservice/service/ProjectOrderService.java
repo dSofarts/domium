@@ -6,7 +6,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.domium.projectservice.dto.response.ProjectOrderResponse;
-import ru.domium.projectservice.dto.response.ProjectResponse;
 import ru.domium.projectservice.entity.Project;
 import ru.domium.projectservice.entity.ProjectOrder;
 import ru.domium.projectservice.entity.ProjectOrderStatus;

@@ -18,7 +18,5 @@ public interface ProjectOrderRepository extends JpaRepository<ProjectOrder, UUID
 
     List<ProjectOrder> findAllByProjectIn(Collection<Project> projects);
 
-    List<ProjectOrder> findAllByProject_Id(UUID projectId);
-
     List<ProjectOrder> findAllByProject_IdAndProject_ManagerUserId(UUID projectId, UUID managerUserId);
 }

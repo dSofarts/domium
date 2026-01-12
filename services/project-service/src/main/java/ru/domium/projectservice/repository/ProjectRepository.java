@@ -17,7 +17,5 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     Optional<Project> findByIdWithImages(@Param("projectId") UUID projectId);
 
     List<Project> findAllByManagerUserId(UUID managerUserId);
-
-    Optional<Project> findByManagerUserId(UUID managerUserId);
 }
 
