@@ -1,6 +1,7 @@
 package ru.domium.projectservice.objectstorage.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +17,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ImageS3Service implements ImageStorageService {
 
     private final S3Client s3Client;
@@ -33,18 +35,38 @@ public class ImageS3Service implements ImageStorageService {
     @Override
     public String uploadProjectImage(UUID projectId, UUID imageId, MultipartFile image) {
         String objectKey = buildObjectKey(projectId, imageId);
+        log.info("Загрузка изображения проекта в S3: projectId={}, imageId={}, objectKey={}, originalFilename={}, size={}, contentType={}",
+                projectId,
+                imageId,
+                objectKey,
+                image != null ? image.getOriginalFilename() : null,
+                image != null ? image.getSize() : null,
+                image != null ? image.getContentType() : null);
+
         putImageInStorage(image, objectKey);
+        log.debug("Загрузка в S3 завершена: objectKey={}", objectKey);
         return objectKey;
     }
 
-//    TODO: UNUSED FOR NOW
+    //    TODO: UNUSED FOR NOW
     @Override
     public String replaceProjectImage(UUID projectId, String oldObjectKey, MultipartFile image, UUID newImageId) {
         String newObjectKey = buildObjectKey(projectId, newImageId);
+        log.info("Замена изображения проекта в S3: projectId={}, newImageId={}, newObjectKey={}, oldObjectKey={}, originalFilename={}, size={}, contentType={}",
+                projectId,
+                newImageId,
+                newObjectKey,
+                oldObjectKey,
+                image != null ? image.getOriginalFilename() : null,
+                image != null ? image.getSize() : null,
+                image != null ? image.getContentType() : null);
+
         putImageInStorage(image, newObjectKey);
 
         if (oldObjectKey != null && !oldObjectKey.isBlank()) {
             deleteImageByKey(oldObjectKey);
+        } else {
+            log.debug("Старый objectKey не задан — удаление пропущено (oldObjectKey пуст)");
         }
 
         return newObjectKey;
@@ -52,15 +74,21 @@ public class ImageS3Service implements ImageStorageService {
 
     @Override
     public void deleteImageByKey(String objectKey) {
+        log.info("Удаление изображения из S3: bucketName={}, objectKey={}", bucketName, objectKey);
+
         try {
             s3Client.deleteObject(builder -> builder.bucket(bucketName).key(objectKey).build());
+            log.debug("Удаление из S3 завершено: objectKey={}", objectKey);
         } catch (S3Exception | SdkClientException e) {
+            log.error("Ошибка удаления изображения из S3: bucketName={}, objectKey={}", bucketName, objectKey, e);
             throw new ImageStorageException("Couldn't delete image from bucket " + bucketName + ": " + e.getMessage());
         }
     }
 
     public String getPublicUrlByKey(String objectKey) {
-        return publicBaseUrl + "/" + bucketName + "/" + objectKey;
+        String url = publicBaseUrl + "/" + bucketName + "/" + objectKey;
+        log.debug("Публичная ссылка сформирована: objectKey={}, url={}", objectKey, url);
+        return url;
     }
 
     private String buildObjectKey(UUID projectId, UUID imageId) {
@@ -76,9 +104,17 @@ public class ImageS3Service implements ImageStorageService {
                 .key(objectKey)
                 .build();
 
-        try (InputStream inputStream = image.getInputStream()) {
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, image.getSize()));
+        try {
+            byte[] bytes = image.getBytes();
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
         } catch (IOException | S3Exception | SdkClientException e) {
+            log.error("Ошибка загрузки изображения в S3: bucketName={}, objectKey={}, originalFilename={}, size={}, contentType={}",
+                    bucketName,
+                    objectKey,
+                    image.getOriginalFilename(),
+                    image.getSize(),
+                    contentType,
+                    e);
             throw new ImageStorageException("Couldn't upload image to bucket " + bucketName + ": " + e.getMessage());
         }
     }

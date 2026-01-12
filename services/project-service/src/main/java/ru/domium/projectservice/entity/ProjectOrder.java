@@ -5,17 +5,17 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "project_orders")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class ProjectOrder {
 
     @Id
@@ -35,5 +35,5 @@ public class ProjectOrder {
 
     @Column(name = "created_at")
     @CreatedDate
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }

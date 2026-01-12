@@ -24,6 +24,7 @@ public class Floor {
     private int floorNumber;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
     @OneToMany(mappedBy = "floor", cascade = CascadeType.ALL, orphanRemoval = true)
