@@ -12,6 +12,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -119,6 +122,42 @@ public class GlobalExceptionHandler {
                 request
         );
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(problem);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex,
+                                                              HttpServletRequest request) {
+        ProblemDetail problem = baseProblem(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication failed",
+                "Неверные учетные данные",
+                request
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleInsufficientAuth(InsufficientAuthenticationException ex,
+                                                                HttpServletRequest request) {
+        ProblemDetail problem = baseProblem(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication required",
+                "Требуется аутентификация",
+                request
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDenied(AccessDeniedException ex,
+                                                            HttpServletRequest request) {
+        ProblemDetail problem = baseProblem(
+                HttpStatus.FORBIDDEN,
+                "Access denied",
+                "Доступ запрещен",
+                request
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
     @ExceptionHandler(Exception.class)
