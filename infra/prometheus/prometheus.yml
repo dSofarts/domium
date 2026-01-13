@@ -37,6 +37,11 @@ scrape_configs:
     static_configs:
       - targets: [ 'domium-building:8091' ]
 
+  - job_name: 'project-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'project-service:8095' ]
+
   - job_name: 'api-gateway'
     metrics_path: /actuator/prometheus
     static_configs:

@@ -2,14 +2,18 @@ package ru.domium.projectservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "projects")
 @Getter
 @Setter
@@ -48,18 +52,17 @@ public class Project {
     @Column(name = "description")
     private String description;
 
-//    @Column(name = "likes", nullable = false)
-//    private Integer likes;
-
     @Column(name = "publication_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private ProjectPublicationStatus publicationStatus;
 
     @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;
+    @CreatedDate
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private OffsetDateTime updatedAt;
+    @LastModifiedDate
+    private Instant updatedAt;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

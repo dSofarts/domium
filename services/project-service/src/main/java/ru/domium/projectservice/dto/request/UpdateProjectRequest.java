@@ -16,27 +16,21 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateProjectRequest {
-    @NotBlank(message = "Название проекта обязательно")
+public class UpdateProjectRequest {
     @Size(max = 255, message = "Название проекта не должно превышать 255 символов")
     private String name;
 
-    @NotNull(message = "Тип проекта обязателен (SERIAL, INDIVIDUAL, BATHHOUSE)")
     private ProjectType type;
 
-    @NotBlank(message = "Категория проекта обязательна")
     @Size(max = 100, message = "Категория проекта не должна превышать 100 символов")
     private String category;
 
-    @NotNull(message = "Стоимость проекта обязательна")
     @DecimalMin(value = "0.0", inclusive = false, message = "Стоимость проекта должна быть больше 0")
     private BigDecimal price;
 
-    @NotBlank(message = "Материал обязателен")
     @Size(max = 100, message = "Материал не должен превышать 100 символов")
     private String material;
 
-    @NotBlank(message = "Локация обязательна")
     @Size(max = 255, message = "Локация не должна превышать 255 символов")
     private String location;
 
@@ -44,6 +38,5 @@ public class CreateProjectRequest {
     private String description;
 
     @Valid
-    @NotEmpty(message = "Список этажей не может быть пустым")
-    private List<CreateFloorRequest> floors = new ArrayList<>();
+    private List<UpdateFloorRequest> floors = new ArrayList<>();
 }

@@ -33,6 +33,7 @@ public class StorageConfig {
                 .endpointOverride(URI.create(url))
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .forcePathStyle(true)
                 .build();
     }
 }

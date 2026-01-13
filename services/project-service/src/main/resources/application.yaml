@@ -1,5 +1,5 @@
 server:
-  port: ${PROJECTS_PORT:8092}
+  port: ${PROJECTS_PORT:8095}
 
 spring:
   application.name: projects

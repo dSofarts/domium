@@ -50,6 +50,7 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       retries: ${HEALTHCHECK_RETRIES}
 
+# не работало без выполнения команды локально: sed -i 's/\r$//' ./infra/minio/init-minio.sh
   minio-init:
     image: minio/mc:latest
     container_name: minio-init
@@ -263,12 +264,15 @@ services:
       POSTGRES_DB: ${PROJECTS_POSTGRES_DB}
       POSTGRES_USER: ${PROJECTS_POSTGRES_USER}
       POSTGRES_PASSWORD: ${PROJECTS_POSTGRES_PASSWORD}
+      KEYCLOAK_ISSUER_URI: http://keycloak:8081/realms/domium
       CONSUL_HOST: consul
       CONSUL_PORT: 8500
       MINIO_HOST: minio
       MINIO_PORT: ${MINIO_API_PORT}
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
+      consul:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       minio:

@@ -42,7 +42,7 @@ domium/
 ---
 ### Быстрый старт
 > Требуется: **Docker** (compose), **JDK 21** (если запускать сервисы локально из IDE).
-> Порты по умолчанию: 8081 (Keycloak), 8090 (API Gateway), 8091 (Building Service), 8092 (Document Service), 9090 (Prometheus), 3000 (Grafana), 3100 (Loki), 3001 (Domium UI).
+> Порты по умолчанию: 8081 (Keycloak), 8090 (API Gateway), 8091 (Building Service), 8092 (Document Service), 8095 (Project Service), 9090 (Prometheus), 3000 (Grafana), 3100 (Loki), 3001 (Domium UI).
 
    ```bash
    docker compose up -d
@@ -66,21 +66,22 @@ domium/
 ---
 ### Сервисы
 
-| Сервис             | Порт (host) | Описание                     | Адрес                  |
-|--------------------|-------------|------------------------------|------------------------|
-| Domium UI          | 3001        | Контейнер `domium-ui`        | http://localhost:3001/ |
-| API Gateway        | 8090        | Gateway                      | http://localhost:8090/ |
-| Keycloak           | 8081        | Dev-мод                      | http://localhost:8081/ |
-| Postgres           | 5432        | Контейнер `postgres`         |                        |
-| Building Service   | 8091        | Контейнер `domium-building`  |                        |
-| Document Service   | 8092        | Контейнер `document-service` |                        |
-| Consul             | 8500        | Service Discovery            | http://localhost:8500/ |
-| Redis              | 6379        | Кеширование                  |                        |
-| Redis insight      | 5540        | ui                           | http://localhost:5540/ |
-| Prometheus         | 9090        | Метрики                      | http://localhost:9090/ |
-| Grafana            | 3000        | Dashboard + Explore          | http://localhost:3000/ |
-| Loki               | 3100        | Хранилище логов              |                        |
-| Minio              | 9000        | Хранилище документов + Loki  | http://localhost:9001/ |
+| Сервис           | Порт (host) | Описание                     | Адрес                  |
+|------------------|-------------|------------------------------|------------------------|
+| Domium UI        | 3001        | Контейнер `domium-ui`        | http://localhost:3001/ |
+| API Gateway      | 8090        | Gateway                      | http://localhost:8090/ |
+| Keycloak         | 8081        | Dev-мод                      | http://localhost:8081/ |
+| Postgres         | 5432        | Контейнер `postgres`         |                        |
+| Building Service | 8091        | Контейнер `domium-building`  |                        |
+| Document Service | 8092        | Контейнер `document-service` |                        |
+| Project Service  | 8095        | Контейнер `project-service`  |                        |
+| Consul           | 8500        | Service Discovery            | http://localhost:8500/ |
+| Redis            | 6379        | Кеширование                  |                        |
+| Redis insight    | 5540        | ui                           | http://localhost:5540/ |
+| Prometheus       | 9090        | Метрики                      | http://localhost:9090/ |
+| Grafana          | 3000        | Dashboard + Explore          | http://localhost:3000/ |
+| Loki             | 3100        | Хранилище логов              |                        |
+| Minio            | 9000        | Хранилище документов + Loki  | http://localhost:9001/ |
 
 ---
 

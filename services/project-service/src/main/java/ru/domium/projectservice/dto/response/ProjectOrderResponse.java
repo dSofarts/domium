@@ -14,5 +14,6 @@ import java.util.UUID;
 public class ProjectOrderResponse {
     private UUID id;
     private UUID projectId;
+    private UUID clientUserId;
     private String status;
 }

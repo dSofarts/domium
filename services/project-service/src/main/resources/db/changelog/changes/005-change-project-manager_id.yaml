@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+        id: 005-change-project-manager_id
+        author: kirill
+        changes:
+          - update:
+              tableName: projects
+              columns:
+                - column:
+                    name: manager_user_id
+                    value: d2e3f4a5-b6c7-8901-def2-234567890123
+              where: manager_user_id IN (
+                'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+                )
