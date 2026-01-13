@@ -6,5 +6,6 @@ public enum DocumentStatus {
   VIEWED,
   SIGNED,
   REJECTED,
-  CANCELLED
+  CANCELLED,
+  DELETE
 }

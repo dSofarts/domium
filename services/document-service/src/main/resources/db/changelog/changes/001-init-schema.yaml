@@ -37,7 +37,7 @@ databaseChangeLog:
                   type: text
               - column:
                   name: stage_code
-                  type: varchar(50)
+                  type: uuid
                   constraints:
                     nullable: false
               - column:
@@ -158,7 +158,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: stage_code
-                  type: varchar(50)
+                  type: uuid
                   constraints:
                     nullable: false
               - column:

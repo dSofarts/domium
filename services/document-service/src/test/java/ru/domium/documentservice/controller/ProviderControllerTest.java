@@ -39,7 +39,7 @@ class ProviderControllerTest {
     UUID documentId = UUID.randomUUID();
     UUID providerId = UUID.randomUUID();
 
-    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("builder"));
+    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("manager"));
 
     MultipartFile file = new MockMultipartFile("file", "doc.pdf", "application/pdf", "x".getBytes());
     String comment = "new version";
@@ -72,7 +72,7 @@ class ProviderControllerTest {
     UUID documentId = UUID.randomUUID();
     UUID providerId = UUID.randomUUID();
 
-    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("builder"));
+    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("manager"));
 
     MultipartFile file = new MockMultipartFile("file", "doc.pdf", "application/pdf", "x".getBytes());
 
@@ -94,11 +94,11 @@ class ProviderControllerTest {
     UUID providerId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
     UUID groupId = UUID.randomUUID();
-
-    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("builder"));
+    UUID stage = UUID.randomUUID();
+    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("manager"));
 
     MultipartFile file = new MockMultipartFile("file", "manual.pdf", "application/pdf", "data".getBytes());
-    StageCode stage = StageCode.CONSTRUCTION;
+
     String title = "Act 1";
 
     DocumentInstance created = baseDoc(UUID.randomUUID(), userId);
@@ -135,11 +135,11 @@ class ProviderControllerTest {
     UUID projectId = UUID.randomUUID();
     UUID providerId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
-
-    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("builder"));
+    UUID stage = UUID.randomUUID();
+    Jwt jwt = jwtWithSubjectAndRoles(providerId, List.of("manager"));
 
     MultipartFile file = new MockMultipartFile("file", "manual.pdf", "application/pdf", "data".getBytes());
-    StageCode stage = StageCode.INIT_DOCS;
+
 
     DocumentInstance created = baseDoc(UUID.randomUUID(), userId);
     created.setProjectId(projectId);
@@ -170,7 +170,7 @@ class ProviderControllerTest {
     d.setId(docId);
     d.setUserId(userId);
     d.setProjectId(UUID.randomUUID());
-    d.setStageCode(StageCode.INIT_DOCS);
+    d.setStageCode(UUID.randomUUID());
     d.setStatus(DocumentStatus.CREATED);
     d.setVersion(1);
     d.setSentAt(Instant.now());

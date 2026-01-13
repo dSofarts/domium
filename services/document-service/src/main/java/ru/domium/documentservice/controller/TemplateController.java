@@ -63,7 +63,7 @@ public class TemplateController {
       @RequestParam("code") String code,
       @RequestParam("name") String name,
       @RequestParam(name = "description", required = false) String description,
-      @RequestParam("stageCode") StageCode stageCode,
+      @RequestParam("stageCode") UUID stageCode,
       @RequestParam(name = "tagsJson", required = false) JsonNode tagsJson,
       @RequestParam(name = "required", defaultValue = "false") boolean required,
       @RequestParam(name = "projectType", required = false) String projectType,

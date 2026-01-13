@@ -12,7 +12,6 @@ import ru.domium.documentservice.model.*;
 import ru.domium.documentservice.repository.*;
 import io.micrometer.core.instrument.Counter;
 import jakarta.transaction.Transactional;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.time.Instant;
@@ -70,95 +69,13 @@ public class DocumentWorkflowService {
     this.objectMapper = objectMapper;
   }
 
-
-  @Transactional
-  public List<DocumentInstance> generateForStage(UUID projectId, StageCode stage, UUID userId,
-      String projectType, Map<String, Object> data) {
-    List<DocumentTemplate> templates = templateRepo.findForStageAndProjectType(stage, projectType);
-    if (templates.isEmpty()) {
-      return List.of();
-    }
-
-    DocumentGroup mainContractGroup = null;
-    if (stage == StageCode.INIT_DOCS) {
-      mainContractGroup = groupRepo.findByProjectIdAndType(projectId,
-              DocumentGroupType.MAIN_CONTRACT)
-          .orElseGet(() -> {
-            DocumentGroup g = new DocumentGroup();
-            g.setProjectId(projectId);
-            g.setType(DocumentGroupType.MAIN_CONTRACT);
-            g.setTitle("Основной договор");
-            return groupRepo.save(g);
-          });
-    }
-
-    List<DocumentInstance> created = new ArrayList<>();
-    for (DocumentTemplate t : templates) {
-      DocumentInstance doc = new DocumentInstance();
-      doc.setTemplate(t);
-      doc.setProjectId(projectId);
-      doc.setUserId(userId);
-      doc.setStageCode(stage);
-      doc.setStatus(DocumentStatus.CREATED);
-      doc.setVersion(1);
-
-      // If INIT_DOCS - attach to MAIN_CONTRACT by default (key requirement)
-      if (mainContractGroup != null) {
-        doc.setGroup(mainContractGroup);
-      }
-
-      // generate file
-      Map<String, Object> merged = new LinkedHashMap<>();
-      if (data != null) {
-        merged.putAll(data);
-      }
-      merged.putIfAbsent("projectId", projectId);
-      if (userId != null) {
-        merged.putIfAbsent("userId", userId);
-      }
-      merged.putIfAbsent("stage", stage.name());
-
-      PdfGenerator.GeneratedPdf pdf = pdfGenerator.generate(t, merged);
-      String fileId = storage.save(BUCKET_DOCUMENTS, new ByteArrayInputStream(pdf.bytes()),
-          pdf.bytes().length, pdf.contentType(), pdf.filename());
-      doc.setCurrentFileStorageId(fileId);
-
-      doc = docRepo.save(doc);
-
-      DocumentFileVersion fv = new DocumentFileVersion();
-      fv.setDocument(doc);
-      fv.setVersion(1);
-      fv.setFileStorageId(fileId);
-      fv.setCreatedByType(ActorType.SYSTEM);
-      versionRepo.save(fv);
-
-      doc.setStatus(DocumentStatus.SENT_TO_USER);
-      doc.setSentAt(Instant.now());
-      docRepo.save(doc);
-
-      if (mainContractGroup != null && mainContractGroup.getRootDocumentId() == null
-          && "CONTRACT_MAIN".equalsIgnoreCase(t.getCode())) {
-        mainContractGroup.setRootDocumentId(doc.getId());
-        groupRepo.save(mainContractGroup);
-      }
-
-      audit(doc, ActorType.SYSTEM, null, AuditAction.GENERATED,
-          json("templateCode", t.getCode(), "stage", stage.name()));
-      audit(doc, ActorType.SYSTEM, null, AuditAction.SENT,
-          json("reason", "auto-send-after-generation"));
-      documentsGenerated.increment();
-      created.add(doc);
-    }
-    return created;
-  }
-
   public List<DocumentInstance> listProjectDocuments(UUID projectId, DocumentStatus status,
-      StageCode stage, DocumentGroupType groupType) {
+      UUID stage, DocumentGroupType groupType) {
     return docRepo.findForProject(projectId, status, stage, groupType);
   }
 
   public List<DocumentInstance> listProjectDocumentsForUser(UUID projectId, UUID userId,
-      DocumentStatus status, StageCode stage, DocumentGroupType groupType) {
+      DocumentStatus status, UUID stage, DocumentGroupType groupType) {
     return docRepo.findForProjectAndUser(projectId, userId, status, stage, groupType);
   }
 
@@ -175,13 +92,41 @@ public class DocumentWorkflowService {
       UUID actorId) {
     DocumentInstance doc = docRepo.findByIdForUpdate(documentId)
         .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
-    if (markViewed && doc.getStatus() == DocumentStatus.SENT_TO_USER) {
+    boolean isOwnerClient =
+        actorType == ActorType.CLIENT
+            && actorId != null
+            && actorId.equals(doc.getUserId());
+
+    if (markViewed && isOwnerClient && doc.getStatus() == DocumentStatus.SENT_TO_USER) {
       doc.setStatus(DocumentStatus.VIEWED);
       doc.setViewedAt(Instant.now());
       docRepo.save(doc);
       audit(doc, actorType, actorId, AuditAction.VIEWED, json());
     }
     return storage.load(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId());
+  }
+
+  @Transactional
+  public DocumentInstance softDelete(UUID documentId, UUID providerId, String comment){
+    DocumentInstance doc = docRepo.findByIdForUpdate(documentId)
+        .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
+    if (doc.getStatus() == DocumentStatus.DELETE) {
+      return doc;
+    }
+    doc.setStatus(DocumentStatus.DELETE);
+    docRepo.save(doc);
+    if (comment != null && !comment.isBlank()) {
+      DocumentComment c = new DocumentComment();
+      c.setDocument(doc);
+      c.setAuthorType(CommentAuthorType.MANAGER);
+      c.setAuthorId(providerId);
+      c.setText(comment);
+      commentRepo.save(c);
+      audit(doc, ActorType.MANAGER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
+    }
+
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.DELETED, json());
+    return doc;
   }
 
   @Transactional
@@ -281,7 +226,7 @@ public class DocumentWorkflowService {
     fv.setDocument(doc);
     fv.setVersion(nextVersion);
     fv.setFileStorageId(fileId);
-    fv.setCreatedByType(ActorType.BUILDER);
+    fv.setCreatedByType(ActorType.MANAGER);
     fv.setCreatedById(providerId);
     versionRepo.save(fv);
 
@@ -294,22 +239,22 @@ public class DocumentWorkflowService {
     if (comment != null && !comment.isBlank()) {
       DocumentComment c = new DocumentComment();
       c.setDocument(doc);
-      c.setAuthorType(CommentAuthorType.PROVIDER);
+      c.setAuthorType(CommentAuthorType.MANAGER);
       c.setAuthorId(providerId);
       c.setText(comment);
       commentRepo.save(c);
-      audit(doc, ActorType.BUILDER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
+      audit(doc, ActorType.MANAGER, providerId, AuditAction.COMMENT_ADDED, json("text", comment));
     }
 
-    audit(doc, ActorType.BUILDER, providerId, AuditAction.VERSION_UPDATED,
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.VERSION_UPDATED,
         json("version", nextVersion));
-    audit(doc, ActorType.BUILDER, providerId, AuditAction.SENT,
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.SENT,
         json("reason", "new-version-uploaded"));
     return doc;
   }
 
   @Transactional
-  public DocumentInstance manualUpload(UUID projectId, UUID providerId, StageCode stage,
+  public DocumentInstance manualUpload(UUID projectId, UUID providerId, UUID stage,
       UUID groupId, UUID userId, MultipartFile file, String title) {
     if (file == null || file.isEmpty()) {
       throw ApiExceptions.badRequest("file is required");
@@ -361,31 +306,15 @@ public class DocumentWorkflowService {
     fv.setDocument(doc);
     fv.setVersion(1);
     fv.setFileStorageId(fileId);
-    fv.setCreatedByType(ActorType.BUILDER);
+    fv.setCreatedByType(ActorType.MANAGER);
     fv.setCreatedById(providerId);
     versionRepo.save(fv);
 
-    audit(doc, ActorType.BUILDER, providerId, AuditAction.MANUAL_UPLOADED, json("title", title));
-    audit(doc, ActorType.BUILDER, providerId, AuditAction.SENT, json("reason", "manual-upload"));
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.MANUAL_UPLOADED, json("title", title));
+    audit(doc, ActorType.MANAGER, providerId, AuditAction.SENT, json("reason", "manual-upload"));
     return doc;
   }
 
-  @Transactional
-  public void advanceStage(UUID projectId, StageCode nextStage, UUID providerId) {
-    StageCode currentStage = switch (nextStage) {
-      case CONSTRUCTION -> StageCode.INIT_DOCS;
-      case FINAL_DOCS -> StageCode.CONSTRUCTION;
-      default -> null;
-    };
-    if (currentStage != null) {
-      long unsigned = docRepo.countUnsignedRequiredForStage(projectId, currentStage);
-      if (unsigned > 0) {
-        throw ApiExceptions.badRequest(
-            "Cannot advance stage. Unsigned required documents: " + unsigned);
-      }
-    }
-    generateForStage(projectId, nextStage, null, null, Map.of("initiatedBy", "advanceStage"));
-  }
 
   public List<DocumentFileVersion> listVersions(UUID documentId) {
     return versionRepo.findAllByDocument_IdOrderByVersionDesc(documentId);

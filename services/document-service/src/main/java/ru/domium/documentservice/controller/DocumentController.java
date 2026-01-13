@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ru.domium.documentservice.dto.DocumentDtos.*;
@@ -26,13 +27,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.oauth2.jwt.Jwt;
+import ru.domium.openapi.config.DomiumOpenApiAutoConfiguration;
 import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Documents",
     description = "Просмотр, подписание и отклонение документов"
 )
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = DomiumOpenApiAutoConfiguration.SECURITY_SCHEME_NAME)
 @RestController
 @RequestMapping
 public class DocumentController {
@@ -97,14 +99,14 @@ public class DocumentController {
   @PreAuthorize("isAuthenticated()")
   @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<Resource> file(@PathVariable UUID documentId,
-      @RequestParam(defaultValue = "true") boolean markViewed,
+      @RequestParam(defaultValue = "false") boolean markViewed,
       @AuthenticationPrincipal Jwt jwt,
       HttpServletRequest request) {
     var doc = workflow.getDocument(documentId);
     authz.assertCanReadDocument(jwt, doc);
 
-    ActorType actorType = (hasRole(jwt, "builder") || hasRole(jwt, "admin"))
-        ? ActorType.BUILDER : ActorType.CLIENT;
+    ActorType actorType = (hasRole(jwt, "manager") || hasRole(jwt, "admin"))
+        ? ActorType.MANAGER : ActorType.CLIENT;
     UUID actorId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
 
     InputStream is = workflow.loadDocumentFile(documentId, markViewed, actorType, actorId);
@@ -131,7 +133,7 @@ public class DocumentController {
       required = true
   )
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
-      description = "Данные подписи (тип подписи и код подтверждения)",
+      description = "Данные подписи (тип подписи и код подтверждения 6-значный)",
       required = true
   )
   @PreAuthorize("isAuthenticated()")
@@ -167,6 +169,7 @@ public class DocumentController {
   )
   @PreAuthorize("isAuthenticated()")
   @PostMapping("/{documentId}/reject")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reject(@PathVariable UUID documentId,
       @RequestBody RejectRequest body,
       @AuthenticationPrincipal Jwt jwt) {

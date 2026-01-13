@@ -44,6 +44,7 @@ class DocumentControllerTest {
   void details_shouldCallWorkflowAndAuthz_andReturnMappedDto() {
     UUID docId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
+    UUID stageCode = UUID.randomUUID();
 
     Jwt jwt = jwtWithSubjectAndRoles(userId, List.of("client"));
 
@@ -51,7 +52,7 @@ class DocumentControllerTest {
     doc.setId(docId);
     doc.setProjectId(UUID.randomUUID());
     doc.setUserId(userId);
-    doc.setStageCode(StageCode.INIT_DOCS);
+    doc.setStageCode(stageCode);
     doc.setStatus(DocumentStatus.SENT_TO_USER);
     doc.setVersion(2);
     doc.setCurrentFileStorageId("fid");
@@ -62,7 +63,7 @@ class DocumentControllerTest {
     v1.setDocument(doc);
     v1.setVersion(1);
     v1.setFileStorageId("f1");
-    v1.setCreatedByType(ActorType.BUILDER);
+    v1.setCreatedByType(ActorType.MANAGER);
     v1.setCreatedById(UUID.randomUUID());
     v1.setCreatedAt(Instant.now());
 
@@ -125,14 +126,14 @@ class DocumentControllerTest {
   void file_shouldUseBuilderActorType_whenJwtHasBuilderRole() {
     UUID docId = UUID.randomUUID();
     UUID providerIdAsSubject = UUID.randomUUID();
-
-    Jwt jwt = jwtWithSubjectAndRoles(providerIdAsSubject, List.of("builder"));
+    UUID stageCode = UUID.randomUUID();
+    Jwt jwt = jwtWithSubjectAndRoles(providerIdAsSubject, List.of("manager"));
 
     DocumentInstance doc = new DocumentInstance();
     doc.setId(docId);
     doc.setUserId(UUID.randomUUID());
     doc.setProjectId(UUID.randomUUID());
-    doc.setStageCode(StageCode.INIT_DOCS);
+    doc.setStageCode(stageCode);
     doc.setStatus(DocumentStatus.SENT_TO_USER);
     doc.setVersion(1);
     doc.setCurrentFileStorageId("fid");
@@ -140,7 +141,7 @@ class DocumentControllerTest {
     when(workflow.getDocument(docId)).thenReturn(doc);
 
     InputStream stream = new ByteArrayInputStream("pdf".getBytes());
-    when(workflow.loadDocumentFile(eq(docId), eq(true), eq(ActorType.BUILDER), eq(providerIdAsSubject)))
+    when(workflow.loadDocumentFile(eq(docId), eq(true), eq(ActorType.MANAGER), eq(providerIdAsSubject)))
         .thenReturn(stream);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
@@ -159,7 +160,7 @@ class DocumentControllerTest {
     assertTrue(resp.getBody() instanceof InputStreamResource);
 
     verify(authz).assertCanReadDocument(jwt, doc);
-    verify(workflow).loadDocumentFile(docId, true, ActorType.BUILDER, providerIdAsSubject);
+    verify(workflow).loadDocumentFile(docId, true, ActorType.MANAGER, providerIdAsSubject);
   }
 
   @Test

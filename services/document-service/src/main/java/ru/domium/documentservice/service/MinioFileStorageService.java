@@ -72,8 +72,6 @@ public class MinioFileStorageService implements FileStorageService {
               .build()
       );
     } catch (Exception e) {
-      // ВАЖНО: delete — компенсационная операция,
-      // она не должна ронять основной поток
       log.error(
           "Failed to delete file from MinIO. bucket={}, objectKey={}",
           bucket, objectKey, e

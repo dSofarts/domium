@@ -33,10 +33,10 @@ class ProjectDocumentsControllerTest {
   @Test
   void list_shouldCallProviderMethod_whenRoleIsBuilder() {
     UUID projectId = UUID.randomUUID();
-    Jwt jwt = jwtWithSubjectAndRoles(UUID.randomUUID(), List.of("builder"));
+    Jwt jwt = jwtWithSubjectAndRoles(UUID.randomUUID(), List.of("manager"));
 
     DocumentStatus status = DocumentStatus.SENT_TO_USER;
-    StageCode stage = StageCode.INIT_DOCS;
+    UUID stage = UUID.randomUUID();
     DocumentGroupType groupType = DocumentGroupType.ADDITIONAL_AGREEMENTS;
 
     DocumentInstance d1 = doc(projectId, UUID.randomUUID(), status, stage, groupType, 1);
@@ -59,10 +59,11 @@ class ProjectDocumentsControllerTest {
   @Test
   void list_shouldCallProviderMethod_whenRoleIsAdmin() {
     UUID projectId = UUID.randomUUID();
+    UUID stage = UUID.randomUUID();
     Jwt jwt = jwtWithSubjectAndRoles(UUID.randomUUID(), List.of("admin"));
 
     DocumentInstance d = doc(projectId, UUID.randomUUID(),
-        DocumentStatus.SENT_TO_USER, StageCode.CONSTRUCTION, DocumentGroupType.ADDITIONAL_AGREEMENTS, 1);
+        DocumentStatus.SENT_TO_USER, stage, DocumentGroupType.ADDITIONAL_AGREEMENTS, 1);
 
     when(workflow.listProjectDocuments(eq(projectId), isNull(), isNull(), isNull()))
         .thenReturn(List.of(d));
@@ -81,11 +82,10 @@ class ProjectDocumentsControllerTest {
   void list_shouldCallUserMethod_whenNoBuilderOrAdminRole_andPassUserIdFromJwtSubject() {
     UUID projectId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
-
+    UUID stage = UUID.randomUUID();
     Jwt jwt = jwtWithSubjectAndRoles(userId, List.of("client")); // не builder, не admin
 
     DocumentStatus status = DocumentStatus.SENT_TO_USER;
-    StageCode stage = StageCode.FINAL_DOCS;
     DocumentGroupType groupType = DocumentGroupType.FINAL_ACTS;
 
     DocumentInstance d = doc(projectId, userId, status, stage, groupType, 3);
@@ -110,7 +110,7 @@ class ProjectDocumentsControllerTest {
   void list_shouldTreatMissingRolesAsUser_andCallUserMethod() {
     UUID projectId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
-
+    UUID stageCode = UUID.randomUUID();
     // roles отсутствуют
     Jwt jwt = Jwt.withTokenValue("t")
         .header("alg", "none")
@@ -118,7 +118,7 @@ class ProjectDocumentsControllerTest {
         .build();
 
     DocumentInstance d = doc(projectId, userId,
-        DocumentStatus.SENT_TO_USER, StageCode.INIT_DOCS, DocumentGroupType.ADDITIONAL_AGREEMENTS, 1);
+        DocumentStatus.SENT_TO_USER, stageCode, DocumentGroupType.ADDITIONAL_AGREEMENTS, 1);
 
     when(workflow.listProjectDocumentsForUser(eq(projectId), eq(userId), isNull(), isNull(), isNull()))
         .thenReturn(List.of(d));
@@ -142,7 +142,7 @@ class ProjectDocumentsControllerTest {
   }
 
   private static DocumentInstance doc(UUID projectId, UUID userId,
-      DocumentStatus status, StageCode stage,
+      DocumentStatus status, UUID stage,
       DocumentGroupType groupType, int version) {
     DocumentInstance d = new DocumentInstance();
     d.setId(UUID.randomUUID());

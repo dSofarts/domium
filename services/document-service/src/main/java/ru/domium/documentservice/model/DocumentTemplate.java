@@ -35,9 +35,8 @@ public class DocumentTemplate extends BaseEntity {
   @Column(name = "description")
   private String description;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "stage_code", nullable = false)
-  private StageCode stageCode;
+  private UUID stageCode;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "tags", columnDefinition = "jsonb")

@@ -18,13 +18,14 @@ import ru.domium.documentservice.service.DocumentMapper;
 import ru.domium.documentservice.service.DocumentWorkflowService;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
+import ru.domium.openapi.config.DomiumOpenApiAutoConfiguration;
 import ru.domium.security.util.SecurityUtils;
 
 @Tag(
     name = "Project / Documents",
     description = "Список документов проекта с фильтрацией"
 )
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = DomiumOpenApiAutoConfiguration.SECURITY_SCHEME_NAME)
 @RestController
 @RequestMapping("/projects/{projectId}/documents")
 public class ProjectDocumentsController {
@@ -43,7 +44,7 @@ public class ProjectDocumentsController {
         Возвращает список документов проекта.
 
         Поведение зависит от роли:
-        - PROVIDER / ADMIN — все документы проекта
+        - MANAGER / ADMIN — все документы проекта
         - USER — только документы, доступные пользователю
         """
   )
@@ -64,7 +65,7 @@ public class ProjectDocumentsController {
   )
   @Parameter(
       name = "stage",
-      description = "Фильтр по этапу проекта (INIT_DOCS, CONSTRUCTION, FINAL_DOCS)",
+      description = "Фильтр по этапу проекта",
       required = false
   )
   @Parameter(
@@ -76,10 +77,10 @@ public class ProjectDocumentsController {
   @GetMapping
   public List<DocumentInstanceDto> list(@PathVariable UUID projectId,
       @RequestParam(required = false) DocumentStatus status,
-      @RequestParam(required = false) StageCode stage,
+      @RequestParam(required = false) UUID stage,
       @RequestParam(required = false) DocumentGroupType groupType,
       @AuthenticationPrincipal Jwt jwt) {
-    boolean isProvider = (hasRole(jwt, "builder") || hasRole(jwt, "admin"));
+    boolean isProvider = (hasRole(jwt, "manager") || hasRole(jwt, "admin"));
     List<DocumentInstance> docs;
     if (isProvider) {
       docs = workflow.listProjectDocuments(projectId, status, stage, groupType);
@@ -87,25 +88,6 @@ public class ProjectDocumentsController {
       UUID userId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
       docs = workflow.listProjectDocumentsForUser(projectId, userId, status, stage, groupType);
     }
-    return docs.stream().map(DocumentMapper::toDto).toList();
-  }
-
-  /**
-   * @deprecated
-   * Эндпоинт не нужен сейчас, в будущем возможно
-   * Под удаление
-   */
-  @Deprecated(since = "2025-12", forRemoval = true)
-  @PostMapping("/generate")
-  public List<DocumentInstanceDto> generate(@PathVariable UUID projectId,
-      @RequestParam StageCode stage,
-      @RequestBody(required = false) GenerateRequest body,
-      @AuthenticationPrincipal Jwt jwt) {
-    authz.assertProvider(jwt);
-    UUID userId = body != null ? body.userId() : null;
-    String projectType = body != null ? body.projectType() : null;
-    Map<String, Object> data = body != null ? body.data() : Map.of();
-    List<DocumentInstance> docs = workflow.generateForStage(projectId, stage, userId, projectType, data);
     return docs.stream().map(DocumentMapper::toDto).toList();
   }
 }
