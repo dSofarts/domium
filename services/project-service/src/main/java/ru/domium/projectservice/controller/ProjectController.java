@@ -131,8 +131,8 @@ public class ProjectController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         UUID managerId = SecurityUtils.requireSubjectUuid(jwt);
-        projectService.updateProject(projectId, request, managerId);
-        return ResponseEntity.notFound().build();
+        ProjectResponse projectResponse = projectService.updateProject(projectId, request, managerId);
+        return ResponseEntity.ok(projectResponse);
     }
 
     @Operation(

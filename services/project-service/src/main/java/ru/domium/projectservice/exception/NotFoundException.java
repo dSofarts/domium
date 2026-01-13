@@ -5,7 +5,7 @@ import java.util.UUID;
 public class NotFoundException extends ProjectsException {
 
     private NotFoundException(String message) {
-        super(message);
+        super(ProjectErrorType.NOT_FOUND, message);
     }
 
     public static RuntimeException projectNotFound(UUID projectId) {
@@ -13,7 +13,7 @@ public class NotFoundException extends ProjectsException {
     }
 
     public static RuntimeException projectImageNotFound(UUID imageId, UUID projectId) {
-        throw new NotFoundException("Project image with id " + imageId + "for project with id " + projectId + " not found");
+        throw new NotFoundException("Project image with id " + imageId + " for project with id " + projectId + " not found");
     }
 
     public static RuntimeException projectOrderNotFound(UUID orderId) {

@@ -13,6 +13,7 @@ import ru.domium.projectservice.entity.ProjectImage;
 import ru.domium.projectservice.objectstorage.service.ImageS3Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -52,37 +53,49 @@ public class ProjectMapper {
     }
 
     public void updateEntityFromDto(UpdateProjectRequest dto, Project project) {
-        if (!dto.getName().equals(project.getName())) {
-            project.setName(dto.getName());
+        if (dto == null) {
+            return;
         }
-        if (!dto.getType().equals(project.getType())) {
-            project.setType(dto.getType());
+        Objects.requireNonNull(project, "project must not be null");
+
+        setIfPresentChanged(dto.getName(), project.getName(), project::setName);
+        setIfPresentChanged(dto.getType(), project.getType(), project::setType);
+        setIfPresentChanged(dto.getCategory(), project.getCategory(), project::setCategory);
+        setIfPresentChanged(dto.getPrice(), project.getPrice(), project::setPrice);
+        setIfPresentChanged(dto.getMaterial(), project.getMaterial(), project::setMaterial);
+        setIfPresentChanged(dto.getLocation(), project.getLocation(), project::setLocation);
+        setIfPresentChanged(dto.getDescription(), project.getDescription(), project::setDescription);
+
+        updateFloors(dto, project);
+    }
+
+    private void updateFloors(UpdateProjectRequest dto, Project project) {
+        if (dto.getFloors() == null) {
+            return;
         }
-        if (!dto.getCategory().equals(project.getCategory())) {
-            project.setCategory(dto.getCategory());
-        }
-        if (!dto.getPrice().equals(project.getPrice())) {
-            project.setPrice(dto.getPrice());
-        }
-        if (!dto.getMaterial().equals(project.getMaterial())) {
-            project.setMaterial(dto.getMaterial());
-        }
-        if (!dto.getLocation().equals(project.getLocation())) {
-            project.setLocation(dto.getLocation());
-        }
-        if (!dto.getDescription().equals(project.getDescription())) {
-            project.setDescription(dto.getDescription());
-        }
-        if (dto.getFloors() == null || dto.getFloors().isEmpty()) {
+
+        if (project.getFloors() != null) {
             project.getFloors().clear();
-        } else {
-            project.getFloors().clear();
-            for (var floorDto : dto.getFloors()) {
-                Floor floor = modelMapper.map(floorDto, Floor.class);
-                floor.setProject(project);
+        }
+
+        if (dto.getFloors().isEmpty()) {
+            return;
+        }
+
+        for (var floorDto : dto.getFloors()) {
+            Floor floor = modelMapper.map(floorDto, Floor.class);
+            floor.setProject(project);
+            if (floor.getRooms() != null) {
                 floor.getRooms().forEach(room -> room.setFloor(floor));
-                project.getFloors().add(floor);
             }
+            project.getFloors().add(floor);
         }
+    }
+
+    private <T> void setIfPresentChanged(T newValue, T oldValue, java.util.function.Consumer<T> setter) {
+        if (newValue == null || Objects.equals(newValue, oldValue)) {
+            return;
+        }
+        setter.accept(newValue);
     }
 }

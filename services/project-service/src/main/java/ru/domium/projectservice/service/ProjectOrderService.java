@@ -70,7 +70,7 @@ public class ProjectOrderService {
         });
 
         if (!project.getManagerUserId().equals(managerId)) {
-            log.warn("Менеджер managerId={} не имеет доступа к заказу: orderId={}", orderId, managerId);
+            log.warn("Менеджер managerId={} не имеет доступа к заказу: orderId={}", managerId, orderId);
             throw new NotAccessException(managerId, projectId);
         }
 
@@ -98,7 +98,7 @@ public class ProjectOrderService {
                 .orElseThrow(() -> {
                     log.warn("Заказ не найден для клиента: orderId={}, clientId={}", orderId, clientId);
                     // оставляю вашу текущую фабрику исключения, чтобы не ломать контракт
-                    return NotFoundException.projectNotFound(orderId);
+                    return NotFoundException.projectOrderNotFound(orderId);
                 });
 
         log.debug("Заказ найден для клиента: orderId={}, projectId={}, clientId={}, status={}",

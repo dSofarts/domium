@@ -160,6 +160,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
+    @ExceptionHandler(ProjectsException.class)
+    public ResponseEntity<ProblemDetail> handleProjectsException(ProjectsException ex,
+                                                                 HttpServletRequest request) {
+        ProjectErrorType type = ex.getErrorType() != null ? ex.getErrorType() : ProjectErrorType.INTERNAL;
+
+        String detail = (ex.getMessage() != null && !ex.getMessage().isBlank())
+                ? ex.getMessage()
+                : type.getDefaultDetail();
+
+        ProblemDetail problem = baseProblem(
+                type.getHttpStatus(),
+                type.getTitle(),
+                detail,
+                request
+        );
+        problem.setProperty("errorType", type.name());
+
+        return ResponseEntity.status(type.getHttpStatus()).body(problem);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGeneric(Exception ex,
                                                        HttpServletRequest request) {

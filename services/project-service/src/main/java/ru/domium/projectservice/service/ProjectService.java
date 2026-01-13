@@ -14,7 +14,6 @@ import ru.domium.projectservice.exception.NotAccessException;
 import ru.domium.projectservice.exception.NotFoundException;
 import ru.domium.projectservice.event.ProjectDeletedEvent;
 import ru.domium.projectservice.mapper.ProjectMapper;
-import ru.domium.projectservice.objectstorage.service.ImageS3Service;
 import ru.domium.projectservice.repository.ProjectRepository;
 
 import java.util.List;
@@ -52,7 +51,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public void updateProject(UUID projectId, UpdateProjectRequest dto, UUID managerId) {
+    public ProjectResponse updateProject(UUID projectId, UpdateProjectRequest dto, UUID managerId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> NotFoundException.projectNotFound(projectId));
 
@@ -60,7 +59,8 @@ public class ProjectService {
             throw new NotAccessException(managerId, projectId);
         }
         projectMapper.updateEntityFromDto(dto, project);
-        projectRepository.save(project);
+        Project updated = projectRepository.save(project);
+        return projectMapper.mapToResponse(updated);
     }
 
     @Transactional
