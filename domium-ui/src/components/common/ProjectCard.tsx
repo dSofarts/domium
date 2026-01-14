@@ -5,8 +5,10 @@ import React from 'react'
 
 import { PAGES } from '@/config/pages.config'
 
+import { Badge } from '../ui/Badge'
 import { Progress } from '../ui/Progress'
 
+import { ProjectStatusLabel } from '@/shared/enums.type'
 import { IProject } from '@/shared/types/project.interface'
 
 interface ProjectProps {
@@ -19,15 +21,22 @@ export function ProjectCard({ project }: ProjectProps) {
     const timer = setTimeout(() => setProgress(project.progress), 500)
     return () => clearTimeout(timer)
   }, [])
+  const date = new Date(project.updatedAt)
 
   return (
     <Link
       href={PAGES.LK_PROJECT(project.id)}
       className='grid p-4 bg-accent rounded-lg cursor-pointer hover:shadow-md transition-shadow'
     >
-      <h3 className='font-bold'>{project.name}</h3>
-      <br />
-      <Progress value={progress} />
+      <div className='flex justify-between'>
+        <h3 className='font-bold text-xl'>{project.name}</h3>
+        <Badge>{ProjectStatusLabel[project.stage]}</Badge>
+      </div>
+
+      <div className='flex gap-3 items-center mt-5'>
+        <Progress value={progress} />
+        <span className=''>{progress}%</span>
+      </div>
     </Link>
   )
 }

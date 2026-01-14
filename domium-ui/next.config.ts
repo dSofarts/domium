@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['static.tildacdn.com']
   },
+  output: 'standalone',
   async redirects() {
     return [
       {
