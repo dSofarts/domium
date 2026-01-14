@@ -5,3 +5,9 @@ export const ProjectStatus = {
 } as const
 
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+export const ProjectStatusLabel: Record<ProjectStatus, string> = {
+  DONE: 'Завершён',
+  IN_PROGRESS: 'В работе',
+  PLANNED: 'Запланирован'
+}

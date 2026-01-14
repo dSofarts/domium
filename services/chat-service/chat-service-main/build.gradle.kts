@@ -6,11 +6,15 @@ dependencies {
     implementation(project(":${RootProject.CORE.name}"))
     implementation(project(":${RootProject.API.name}"))
 
+    implementation("ru.domium.security:1.0.0")
+    implementation("ru.domium:openapi:1.0.0")
+
     // SPRING COMPONENTS
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
+    implementation("org.springframework.cloud:spring-cloud-starter-consul-discovery")
 
     // OTHER
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
@@ -28,8 +32,14 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
+    }
+}
+
 tasks {
     bootJar {
-        archiveFileName.set("samsad-application-service.jar")
+        archiveFileName.set("chat-service.jar")
     }
 }

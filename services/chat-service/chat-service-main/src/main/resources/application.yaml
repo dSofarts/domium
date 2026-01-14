@@ -4,6 +4,18 @@ server:
 spring:
   application:
     name: chat-service
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
+        ip-address: ${HOSTNAME:buildings}
+        port: ${server.port}
   liquibase:
     change-log: classpath:/db/changelog.yaml
     user: ${DB_USERNAME:postgres}
@@ -24,6 +36,19 @@ spring:
   jackson:
     deserialization:
       USE_BIG_DECIMAL_FOR_FLOATS: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      access: read_only
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   pattern:

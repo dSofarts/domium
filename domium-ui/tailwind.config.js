@@ -5,5 +5,6 @@ module.exports = {
         xs: '22rem'
       }
     }
-  }
+  },
+  output: 'standalone'
 }
