@@ -8,7 +8,6 @@ import org.springframework.aot.hint.TypeReference.listOf
 import org.springframework.stereotype.Service
 import ru.domium.chat.api.request.CreateChatRequest
 import ru.domium.chat.api.response.GetChatResponse
-import ru.domium.chat.core.exception.ChatAlreadyExistException
 import ru.domium.chat.core.exception.NotAccessToChatException
 import ru.domium.chat.core.exception.ObjectNotFoundException
 import ru.domium.chat.entity.Chat
@@ -31,12 +30,39 @@ class ChatService(
     ): GetChatResponse {
         logger.info { "Начато создание чата для проекта ${request.projectId}" }
         if (chatRepository.isExistsByProjectId(request.projectId)) {
-            logger.info { "Уже найден существующий час для данного проекта" }
-            throw ChatAlreadyExistException(
-                "Chat already exists",
-                mapOf(
-                    "projectId" to request.projectId.toString(),
-                ),
+            logger.info { "Уже найден существующий чат для данного проекта" }
+            val chat =
+                chatRepository.getByProjectId(request.projectId)
+                    ?: throw ObjectNotFoundException.chat(request.projectId.toString())
+            val membersToInsert = mutableListOf<ChatMember>()
+            if (chatMemberRepository.getByUserIdAndChatId(userId, chat.id) == null) {
+                membersToInsert.add(
+                    ChatMember(
+                        id = UUID.randomUUID(),
+                        chatId = chat.id,
+                        userId = userId,
+                        username = request.userName,
+                    ),
+                )
+            }
+            if (chatMemberRepository.getByUserIdAndChatId(request.managerId, chat.id) == null) {
+                membersToInsert.add(
+                    ChatMember(
+                        id = UUID.randomUUID(),
+                        chatId = chat.id,
+                        userId = request.managerId,
+                        username = request.managerName,
+                    ),
+                )
+            }
+            if (membersToInsert.isNotEmpty()) {
+                chatMemberRepository.insert(list = membersToInsert, clazz = ChatMember::class)
+            }
+            val lastMessage = messageService.getLastMessageByChatId(chatId = chat.id)
+            return GetChatResponse(
+                chatId = chat.id,
+                projectId = chat.projectId,
+                lastMessage = lastMessage?.content,
             )
         }
 

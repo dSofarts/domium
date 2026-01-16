@@ -3,7 +3,19 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
-    domains: ['static.tildacdn.com']
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'static.tildacdn.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'http',
+        hostname: 'minio',
+        port: '9000',
+        pathname: '/**'
+      }
+    ]
   },
   output: 'standalone',
   async redirects() {

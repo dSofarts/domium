@@ -21,6 +21,7 @@ public class ProjectResponse {
     private String material;
     private String location;
     private String description;
+    private java.util.UUID workflowId;
     @Builder.Default
     private List<FloorResponse> floors = new ArrayList<>();
     @Builder.Default

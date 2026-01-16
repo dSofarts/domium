@@ -39,13 +39,12 @@ class MinioFileStorageServiceTest {
   @Test
   void save_shouldPutObject_andReturnGeneratedObjectName_withSanitizedFilename() throws Exception {
     String bucket = "bucket-docs";
-    String filename = "my file(1)?!.pdf"; // будут заменены пробел/скобки/?/! на "_"
+    String filename = "my file(1)?!.pdf";
     String contentType = "application/pdf";
     byte[] data = "hello".getBytes();
 
     InputStream in = new ByteArrayInputStream(data);
 
-    // putObject ничего не возвращает; по умолчанию mock ничего не делает
     ArgumentCaptor<PutObjectArgs> captor = ArgumentCaptor.forClass(PutObjectArgs.class);
 
     String objectName = service.save(bucket, in, data.length, contentType, filename);

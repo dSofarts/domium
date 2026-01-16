@@ -25,21 +25,38 @@ public class JwtRoleConverter implements Converter<Jwt, Collection<GrantedAuthor
         Collection<GrantedAuthority> authorities = defaultConverter.convert(jwt);
 
         Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+        Collection<GrantedAuthority> realmRoles = List.of();
         if (realmAccess != null) {
             List<String> roles = (List<String>) realmAccess.get("roles");
             if (roles != null) {
-                Collection<GrantedAuthority> realmRoles = roles.stream()
+                realmRoles = roles.stream()
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                         .collect(Collectors.toList());
-                
-                return Stream.concat(
-                        authorities.stream(), 
-                        realmRoles.stream()
-                ).collect(Collectors.toList());
             }
         }
-        
-        return authorities;
+
+        Map<String, Object> resourceAccess = jwt.getClaimAsMap("resource_access");
+        Collection<GrantedAuthority> resourceRoles = List.of();
+        if (resourceAccess != null) {
+            resourceRoles = resourceAccess.values().stream()
+                    .filter(Map.class::isInstance)
+                    .map(Map.class::cast)
+                    .flatMap(entry -> {
+                        Object roles = entry.get("roles");
+                        if (roles instanceof List) {
+                            return ((List<?>) roles).stream()
+                                    .filter(String.class::isInstance)
+                                    .map(String.class::cast)
+                                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+                        }
+                        return Stream.empty();
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return Stream.of(authorities, realmRoles, resourceRoles)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 }
 

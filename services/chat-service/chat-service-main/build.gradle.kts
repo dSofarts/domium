@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":${RootProject.CORE.name}"))
     implementation(project(":${RootProject.API.name}"))
 
-    implementation("ru.domium.security:1.0.0")
+    implementation("ru.domium:security:1.0.0")
     implementation("ru.domium:openapi:1.0.0")
 
     // SPRING COMPONENTS

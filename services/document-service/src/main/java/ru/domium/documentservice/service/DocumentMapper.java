@@ -25,6 +25,7 @@ public final class DocumentMapper {
         d.getProjectId(),
         d.getUserId(),
         d.getStageCode(),
+        d.getTitle(),
         d.getStatus(),
         d.getVersion(),
         d.getCreatedAt(),
@@ -47,7 +48,16 @@ public final class DocumentMapper {
   }
 
   public static SignatureDto toDto(DocumentSignature s) {
-    return new SignatureDto(s.getId(), s.getDocument().getId(), s.getSignerUserId(), s.getType(), s.getSignedAt(), s.getSignaturePayloadJson(), s.getFileHash());
+    return new SignatureDto(
+        s.getId(),
+        s.getDocument().getId(),
+        s.getSignerUserId(),
+        s.getSignerType(),
+        s.getType(),
+        s.getSignedAt(),
+        s.getSignaturePayloadJson(),
+        s.getFileHash()
+    );
   }
 
   public static AuditDto toDto(DocumentAuditLog a) {

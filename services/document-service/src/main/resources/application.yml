@@ -17,7 +17,7 @@ spring:
         instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
 
   datasource:
-    url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${DOCUMENT_POSTGRES_DB:document}
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${DOCUMENT_POSTGRES_DB:document}
     username: ${DOCUMENT_POSTGRES_USER:postgres}
     password: ${DOCUMENT_POSTGRES_PASSWORD:postgres}
 
@@ -51,6 +51,7 @@ management:
 
 minio:
   endpoint: http://minio:${MINIO_API_PORT:9000}
+  public-url: ${MINIO_PUBLIC_URL:}
   access-key: ${MINIO_ROOT_USER}
   secret-key: ${MINIO_ROOT_PASSWORD}
   buckets:

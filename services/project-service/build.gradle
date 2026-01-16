@@ -26,36 +26,29 @@ repositories {
 }
 
 dependencies {
-//    Domium Common Modules
     implementation 'ru.domium:security:1.0.0'
     implementation 'ru.domium:openapi:1.0.0'
 
-//    Base
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-//    Databases
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.liquibase:liquibase-core'
-    
-//    Service Discovery
+
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
 
-//    Aws SDK S3
     implementation platform('software.amazon.awssdk:bom:2.40.8')
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:apache-client'
 
-//    Mapping
     implementation('org.modelmapper:modelmapper:3.2.0')
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
-//    Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-//    Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

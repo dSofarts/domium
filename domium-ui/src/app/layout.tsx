@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Manrope } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
+import { AuthProvider } from '@/shared/auth/AuthProvider'
 
 import { SITE_NAME } from '@/constants/seo.constants'
 import { BASE_URL } from '@/constants/site.constants'
@@ -52,7 +53,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -22,6 +22,7 @@ import ru.domium.documentservice.service.DocumentWorkflowService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.util.UUID;
+import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -100,6 +101,7 @@ public class DocumentController {
   @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<Resource> file(@PathVariable UUID documentId,
       @RequestParam(defaultValue = "false") boolean markViewed,
+      @RequestParam(defaultValue = "false") boolean download,
       @AuthenticationPrincipal Jwt jwt,
       HttpServletRequest request) {
     var doc = workflow.getDocument(documentId);
@@ -111,10 +113,62 @@ public class DocumentController {
 
     InputStream is = workflow.loadDocumentFile(documentId, markViewed, actorType, actorId);
     var resource = new InputStreamResource(is);
+    String disposition = download ? "attachment" : "inline";
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"document-" + documentId + ".pdf\"")
+        .header(HttpHeaders.CONTENT_DISPOSITION, disposition + "; filename=\"document-" + documentId + ".pdf\"")
         .contentType(MediaType.APPLICATION_PDF)
         .body(resource);
+  }
+
+  @Operation(
+      summary = "Получить файл документа (сырой, с контент-типом)",
+      description = "Возвращает файл документа с контент-типом из хранилища"
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Файл документа"),
+      @ApiResponse(responseCode = "403", description = "Нет доступа к документу"),
+      @ApiResponse(responseCode = "404", description = "Документ или файл не найден")
+  })
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/{documentId}/file-raw")
+  public ResponseEntity<Resource> fileRaw(@PathVariable UUID documentId,
+      @RequestParam(defaultValue = "false") boolean markViewed,
+      @AuthenticationPrincipal Jwt jwt) {
+    var doc = workflow.getDocument(documentId);
+    authz.assertCanReadDocument(jwt, doc);
+
+    ActorType actorType = (hasRole(jwt, "manager") || hasRole(jwt, "admin"))
+        ? ActorType.MANAGER : ActorType.CLIENT;
+    UUID actorId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
+
+    var file = workflow.loadDocumentFileWithMetadata(documentId, markViewed, actorType, actorId);
+    var resource = new InputStreamResource(file.stream());
+    MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
+    if (file.contentType() != null && !file.contentType().isBlank()) {
+      contentType = MediaType.parseMediaType(file.contentType());
+    }
+    return ResponseEntity.ok()
+        .contentType(contentType)
+        .body(resource);
+  }
+
+  @Operation(
+      summary = "Получить публичную ссылку на файл документа",
+      description = "Возвращает pre-signed URL на файл документа (подходит для изображений)"
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Ссылка на файл"),
+      @ApiResponse(responseCode = "403", description = "Нет доступа к документу"),
+      @ApiResponse(responseCode = "404", description = "Документ не найден")
+  })
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/{documentId}/file-url")
+  public ResponseEntity<Map<String, String>> fileUrl(@PathVariable UUID documentId,
+      @AuthenticationPrincipal Jwt jwt) {
+    var doc = workflow.getDocument(documentId);
+    authz.assertCanReadDocument(jwt, doc);
+    String url = workflow.generatePresignedUrl(documentId, 3600);
+    return ResponseEntity.ok(Map.of("url", url));
   }
 
   @Operation(
@@ -144,7 +198,17 @@ public class DocumentController {
     var doc = workflow.getDocument(documentId);
     authz.assertCanReadDocument(jwt, doc);
 
-    var sig = workflow.sign(documentId, userId, body.signatureType(), body.confirmationCode(), request.getRemoteAddr(), request.getHeader("User-Agent"));
+    ActorType actorType = (hasRole(jwt, "manager") || hasRole(jwt, "admin"))
+        ? ActorType.MANAGER : ActorType.CLIENT;
+    var sig = workflow.sign(
+        documentId,
+        userId,
+        actorType,
+        body.signatureType(),
+        body.confirmationCode(),
+        request.getRemoteAddr(),
+        request.getHeader("User-Agent")
+    );
     return DocumentMapper.toDto(sig);
   }
 

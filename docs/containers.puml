@@ -3,48 +3,65 @@
 
 Person(client, "Client", "Заказчик")
 Person(manager, "Manager", "Менеджер")
+Person(admin, "Admin", "Администратор")
 
 System_Boundary(sys, "Domium Application") {
   Container(frontend, "Web PWA", "", "UI для заказчика и строителя")
 
   Container(apiGateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа, JWT, маршрутизация")
+  Container(videoGateway, "Video Nginx", "Nginx", "HLS выдача и proxy для старта стрима")
 
   Container_Boundary(services, "Backend Services") {
     Container(projectSvc, "Project Service", "Spring Boot", "Каталог проектов, выбор проекта")
     Container(buildingSvc, "Building Service", "Spring Boot", "Объекты строительства, этапы, видео")
     Container(documentSvc, "Document Service", "Spring Boot", "Документы, статусы, подписание (mock/real)")
     Container(chatSvc, "Chat Service", "Go + WebSocket", "Чат по объекту строительства")
-    Container(notificationSvc, "Notification Service", "Go/Java", "Email/SMS/push уведомления (опционально)")
   }
 
   Container_Boundary(data, "Data Stores") {
-    ContainerDb(pg, "PostgreSQL", "RDBMS", "projects, buildings, documents, chat_archive, notifications")
-    Container(redis, "Redis", "Cache/Store", "chat recent messages (опционально)")
+    ContainerDb(pg, "PostgreSQL", "RDBMS", "projects, buildings, documents, chat_archive")
     Container(minio, "MinIO", "S3-compatible", "файлы документов")
+    ContainerDb(hlsStorage, "HLS Storage", "Filesystem volume", "HLS сегменты")
   }
 
-  Container(keycloak, "Keycloak", "Auth", "Users, roles (CLIENT/MANAGER)")
+  Container_Boundary(infra, "Infrastructure") {
+    Container(keycloak, "Keycloak", "Auth", "Users, roles (CLIENT/MANAGER)")
+    Container(consul, "Consul", "Service Discovery", "Реестр сервисов")
+    Container(prometheus, "Prometheus", "Metrics", "Scrapes /actuator/prometheus")
+    Container(grafana, "Grafana", "Dashboards", "Metrics + Logs")
+    Container(loki, "Loki", "Logs", "Log storage")
+    Container(alloy, "Alloy", "Telemetry collector", "Docker logs + OTLP")
+  }
 }
+
+Container_Ext(rtspSource, "RTSP Source", "IP-Camera", "Видеопоток")
 
 Rel(client, frontend, "Использует", "HTTPS")
 Rel(manager, frontend, "Использует", "HTTPS")
+Rel(admin, keycloak, "Управляет", "Web Admin UI")
 
 Rel(frontend, apiGateway, "REST / WebSocket", "/api/**, /ws/**")
-Rel(apiGateway, projectSvc, "Маршрутизирует", "HTTP")
-Rel(apiGateway, buildingSvc, "Маршрутизирует", "HTTP")
-Rel(apiGateway, documentSvc, "Маршрутизирует", "HTTP")
-Rel(apiGateway, chatSvc, "Маршрутизирует", "WS")
-Rel(apiGateway, notificationSvc, "Маршрутизирует", "HTTP")
+Rel(frontend, videoGateway, "Смотрит видео", "HLS")
+Rel(frontend, videoGateway, "Старт стрима", "/api/video/stream")
+Rel(apiGateway, services, "Маршрутизирует", "HTTP/WS")
 
 Rel(apiGateway, keycloak, "Проверяет JWT", "OIDC / JWKS")
+Rel(services, consul, "Service discovery", "HTTP")
 
 Rel(projectSvc, pg, "Read/Write", "JDBC")
 Rel(buildingSvc, pg, "Read/Write", "JDBC")
 Rel(documentSvc, pg, "Read/Write", "JDBC")
 Rel(chatSvc, pg, "Archive", "JDBC")
-Rel(notificationSvc, pg, "Read/Write", "JDBC")
 
 Rel(documentSvc, minio, "Upload/Download", "S3 API")
-Rel(chatSvc, redis, "Store recent messages", "Redis protocol")
+Rel(buildingSvc, hlsStorage, "Writes HLS", "Filesystem")
+Rel(videoGateway, hlsStorage, "Reads HLS", "Filesystem")
+Rel(buildingSvc, rtspSource, "Pulls stream", "RTSP")
+Rel(videoGateway, buildingSvc, "Auth check", "HTTP (internal)")
+
+Rel(prometheus, services, "Scrapes", "HTTP")
+Rel(alloy, loki, "Ships logs", "HTTP")
+Rel(grafana, prometheus, "Queries", "HTTP")
+Rel(grafana, loki, "Queries", "HTTP")
 
 @enduml

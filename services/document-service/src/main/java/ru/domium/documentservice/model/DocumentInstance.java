@@ -42,6 +42,9 @@ public class DocumentInstance extends BaseEntity {
   @Column(name = "stage_code", nullable = false)
   private UUID stageCode;
 
+  @Column(name = "title")
+  private String title;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private DocumentStatus status;

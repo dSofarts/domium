@@ -14,7 +14,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface DocumentInstanceRepository extends JpaRepository<DocumentInstance, UUID> {
 
-  @Query("select d from DocumentInstance d left join d.group g where d.projectId = :projectId "
+  @Query("select distinct d from DocumentInstance d left join fetch d.group g where d.projectId = :projectId "
       + "and ((:status is null and d.status <> 'DELETE') or d.status = :status) "
       + "and (:stage is null or d.stageCode = :stage) "
       + "and (:groupType is null or g.type = :groupType)")
@@ -23,7 +23,10 @@ public interface DocumentInstanceRepository extends JpaRepository<DocumentInstan
                                        @Param("stage") UUID stage,
                                        @Param("groupType") DocumentGroupType groupType);
 
-  @Query("select d from DocumentInstance d left join d.group g where d.projectId = :projectId and d.userId = :userId "
+  @Query("select distinct d from DocumentInstance d left join fetch d.group g "
+      + "where d.projectId = :projectId "
+      + "and (d.userId = :userId "
+      + "  or exists (select 1 from DocumentFileVersion v where v.document = d and v.createdById = :userId)) "
       + "and ((:status is null and d.status <> 'DELETE') or d.status = :status) "
       + "and (:stage is null or d.stageCode = :stage) "
       + "and (:groupType is null or g.type = :groupType)")
@@ -43,4 +46,7 @@ public interface DocumentInstanceRepository extends JpaRepository<DocumentInstan
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select d from DocumentInstance d where d.id = :id")
   Optional<DocumentInstance> findByIdForUpdate(@Param("id") UUID id);
+
+  @Query("select d from DocumentInstance d left join fetch d.group g left join fetch d.template t where d.id = :id")
+  Optional<DocumentInstance> findByIdWithRelations(@Param("id") UUID id);
 }

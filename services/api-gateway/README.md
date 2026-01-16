@@ -16,19 +16,18 @@ API Gateway на основе Spring Cloud Gateway с интеграцией Key
 
 ### Переменные окружения
 
-- `KEYCLOAK_ISSUER_URI` - URI Keycloak realm (по умолчанию: `http://localhost:8081/realms/domium`)
-- `KEYCLOAK_INTERNAL_URL` - Внутренний URL Keycloak для получения JWKS (по умолчанию: `http://keycloak:8080`)
+- `KEYCLOAK_ISSUER_URI` - URI Keycloak realm (по умолчанию: `http://keycloak.localhost:8080/realms/domium`)
+- `KEYCLOAK_INTERNAL_URL` - Внутренний URL Keycloak для получения JWKS (по умолчанию: `http://keycloak.localhost:8080`)
 - `CONSUL_HOST` - хост Consul (по умолчанию: `localhost`)
 - `CONSUL_PORT` - порт Consul (по умолчанию: `8500`)
 
 ### Маршруты
 
 - `/api/projects/**` → `project-service` (требует роль CLIENT или MANAGER)
-- `/api/buildings/**` → `domium-building` (требует роль CLIENT или MANAGER)
+- `/api/buildings/**` → `building-service` (требует роль CLIENT или MANAGER)
 - `/ws/chat/**` → `chat-service` (WebSocket)
 
-**Важно:** на gateway оставлен только один внешний вход для domium-building — **`/api/buildings/**`**.
-Путь `/buildings/**` удалён (не используется).
+
 
 **Примечание:** Роли определяются через JWT токен. Сервисы получают роли через JWT (resource-server) и/или проксируемые заголовки gateway (если включено).
 
@@ -66,7 +65,7 @@ API Gateway предоставляет единую точку доступа к
    
    **В Postman:**
    - Метод: `POST`
-   - URL: `http://localhost:8081/realms/domium/protocol/openid-connect/token`
+   - URL: `http://localhost:8080/realms/domium/protocol/openid-connect/token`
    - Headers: `Content-Type: application/x-www-form-urlencoded`
    - Body (x-www-form-urlencoded):
      - `username`: `test-client`

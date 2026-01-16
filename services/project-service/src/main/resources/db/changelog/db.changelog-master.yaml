@@ -14,3 +14,6 @@ databaseChangeLog:
   - include:
       file: changes/005-change-project-manager_id.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/006-add-workflow-id.yaml
+      relativeToChangelogFile: true

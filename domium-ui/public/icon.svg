@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DOMIUM">
+  <rect width="512" height="512" rx="96" fill="#111827"/>
+  <path d="M168 336h176v24H168zM188 152h136v32H188z" fill="#ffffff"/>
+  <path d="M168 200h176v112H168z" fill="#1f2937"/>
+  <path d="M192 224h128v64H192z" fill="#ffffff"/>
+  <path d="M212 244h88v24h-88z" fill="#111827"/>
+</svg>

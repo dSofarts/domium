@@ -105,7 +105,7 @@ public class DocumentControllerIT extends AbstractDocumentServiceIT {
   }
 
   @Test
-  void sign_success_changesStatusSigned_andCreatesSignatureRow() {
+  void sign_success_requiresBothSides_andCreatesTwoSignatures() {
     UUID projectId = UUID.randomUUID();
     UUID stage = UUID.randomUUID();
     var created = manualUpload(projectId, stage, client.userId(), "sign");
@@ -126,27 +126,50 @@ public class DocumentControllerIT extends AbstractDocumentServiceIT {
     Assertions.assertEquals(HttpStatus.OK, resp.getStatusCode());
     Assertions.assertNotNull(resp.getBody());
     Assertions.assertEquals(created.id(), Objects.requireNonNull(resp.getBody()).documentId());
+    Assertions.assertEquals("CLIENT", Objects.requireNonNull(resp.getBody()).signerType().name());
 
     String status = jdbc.queryForObject(
         "select status from document.document_instance where id = ?",
         String.class,
         created.id()
     );
-    Assertions.assertEquals(DocumentStatus.SIGNED.name(), status);
+    Assertions.assertEquals(DocumentStatus.SENT_TO_USER.name(), status);
+
+    HttpHeaders managerHeaders = bearerHeaders(manager.accessToken());
+    managerHeaders.setContentType(MediaType.APPLICATION_JSON);
+    managerHeaders.set("User-Agent", "domium-it");
+
+    ResponseEntity<SignatureDto> managerResp = rest.exchange(
+        baseUrl("/" + created.id() + "/sign"),
+        HttpMethod.POST,
+        new HttpEntity<>(reqBody, managerHeaders),
+        SignatureDto.class
+    );
+
+    Assertions.assertEquals(HttpStatus.OK, managerResp.getStatusCode());
+    Assertions.assertNotNull(managerResp.getBody());
+    Assertions.assertEquals("MANAGER", Objects.requireNonNull(managerResp.getBody()).signerType().name());
+
+    String finalStatus = jdbc.queryForObject(
+        "select status from document.document_instance where id = ?",
+        String.class,
+        created.id()
+    );
+    Assertions.assertEquals(DocumentStatus.SIGNED.name(), finalStatus);
 
     Integer sigCnt = jdbc.queryForObject(
         "select count(*) from document.document_signature where document_id = ?",
         Integer.class,
         created.id()
     );
-    Assertions.assertEquals(1, sigCnt);
+    Assertions.assertEquals(2, sigCnt);
 
     Integer signedAudit = jdbc.queryForObject(
         "select count(*) from document.document_audit_log where document_id = ? and action = 'SIGNED'",
         Integer.class,
         created.id()
     );
-    Assertions.assertEquals(1, signedAudit);
+    Assertions.assertEquals(2, signedAudit);
   }
 
   @Test
@@ -229,6 +252,17 @@ public class DocumentControllerIT extends AbstractDocumentServiceIT {
         SignatureDto.class
     );
     Assertions.assertEquals(HttpStatus.OK, signResp.getStatusCode());
+
+    HttpHeaders managerHeaders = bearerHeaders(manager.accessToken());
+    managerHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+    ResponseEntity<SignatureDto> signRespManager = rest.exchange(
+        baseUrl("/" + created.id() + "/sign"),
+        HttpMethod.POST,
+        new HttpEntity<>(signBody, managerHeaders),
+        SignatureDto.class
+    );
+    Assertions.assertEquals(HttpStatus.OK, signRespManager.getStatusCode());
 
     RejectRequest rejectBody = new RejectRequest("late reject");
     ResponseEntity<String> rejectResp = rest.exchange(

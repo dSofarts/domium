@@ -31,6 +31,10 @@ public class DocumentSignature {
   private UUID signerUserId;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "signer_type", nullable = false)
+  private ActorType signerType;
+
+  @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)
   private SignatureType type;
 

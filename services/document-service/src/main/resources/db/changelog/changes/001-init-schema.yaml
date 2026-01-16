@@ -443,3 +443,28 @@ databaseChangeLog:
             tableName: document_audit_log
             columns:
               - column: { name: document_id }
+
+  - changeSet:
+      id: 009-document-signature-actor-type
+      author: document-service
+      changes:
+        - addColumn:
+            tableName: document_signature
+            columns:
+              - column:
+                  name: signer_type
+                  type: varchar(50)
+                  defaultValue: CLIENT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 010-document-instance-title
+      author: document-service
+      changes:
+        - addColumn:
+            tableName: document_instance
+            columns:
+              - column:
+                  name: title
+                  type: varchar(255)

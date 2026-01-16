@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-add-workflow-id
+      author: domium
+      changes:
+        - addColumn:
+            tableName: projects
+            columns:
+              - column:
+                  name: workflow_id
+                  type: UUID

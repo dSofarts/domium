@@ -52,6 +52,9 @@ public class Project {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "workflow_id")
+    private UUID workflowId;
+
     @Column(name = "publication_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private ProjectPublicationStatus publicationStatus;

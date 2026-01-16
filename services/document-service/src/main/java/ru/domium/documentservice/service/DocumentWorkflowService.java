@@ -84,7 +84,7 @@ public class DocumentWorkflowService {
   }
 
   public DocumentInstance getDocument(UUID documentId) {
-    return docRepo.findById(documentId)
+    return docRepo.findByIdWithRelations(documentId)
         .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
   }
   @Transactional
@@ -104,6 +104,25 @@ public class DocumentWorkflowService {
       audit(doc, actorType, actorId, AuditAction.VIEWED, json());
     }
     return storage.load(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId());
+  }
+
+  @Transactional
+  public FileStorageService.FileObject loadDocumentFileWithMetadata(UUID documentId, boolean markViewed,
+      ActorType actorType, UUID actorId) {
+    DocumentInstance doc = docRepo.findByIdForUpdate(documentId)
+        .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
+    boolean isOwnerClient =
+        actorType == ActorType.CLIENT
+            && actorId != null
+            && actorId.equals(doc.getUserId());
+
+    if (markViewed && isOwnerClient && doc.getStatus() == DocumentStatus.SENT_TO_USER) {
+      doc.setStatus(DocumentStatus.VIEWED);
+      doc.setViewedAt(Instant.now());
+      docRepo.save(doc);
+      audit(doc, actorType, actorId, AuditAction.VIEWED, json());
+    }
+    return storage.loadWithMetadata(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId());
   }
 
   @Transactional
@@ -130,8 +149,8 @@ public class DocumentWorkflowService {
   }
 
   @Transactional
-  public DocumentSignature sign(UUID documentId, UUID signerUserId, SignatureType signatureType,
-      String confirmationCode, String ip, String userAgent) {
+  public DocumentSignature sign(UUID documentId, UUID signerUserId, ActorType signerType,
+      SignatureType signatureType, String confirmationCode, String ip, String userAgent) {
     if (signatureType != SignatureType.SIMPLE) {
       throw ApiExceptions.badRequest("Only SIMPLE signature is supported in MVP");
     }
@@ -147,6 +166,10 @@ public class DocumentWorkflowService {
       throw ApiExceptions.badRequest("Document cannot be signed in status: " + doc.getStatus());
     }
 
+    if (signatureRepo.existsByDocument_IdAndSignerType(documentId, signerType)) {
+      throw ApiExceptions.badRequest("Document already signed by " + signerType);
+    }
+
     // hash current file
     byte[] bytes;
     try (InputStream is = storage.load(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId())) {
@@ -159,6 +182,7 @@ public class DocumentWorkflowService {
     DocumentSignature signature = new DocumentSignature();
     signature.setDocument(doc);
     signature.setSignerUserId(signerUserId);
+    signature.setSignerType(signerType);
     signature.setType(signatureType);
     signature.setFileHash(hash);
     signature.setSignaturePayloadJson(json(
@@ -168,13 +192,17 @@ public class DocumentWorkflowService {
     ));
     signature = signatureRepo.save(signature);
 
-    doc.setStatus(DocumentStatus.SIGNED);
-    doc.setSignedAt(Instant.now());
-    docRepo.save(doc);
+    boolean hasClient = signatureRepo.existsByDocument_IdAndSignerType(documentId, ActorType.CLIENT);
+    boolean hasManager = signatureRepo.existsByDocument_IdAndSignerType(documentId, ActorType.MANAGER);
+    if (hasClient && hasManager) {
+      doc.setStatus(DocumentStatus.SIGNED);
+      doc.setSignedAt(Instant.now());
+      docRepo.save(doc);
+      documentsSigned.increment();
+    }
 
-    audit(doc, ActorType.CLIENT, signerUserId, AuditAction.SIGNED,
+    audit(doc, signerType, signerUserId, AuditAction.SIGNED,
         json("signatureType", signatureType.name(), "fileHash", hash));
-    documentsSigned.increment();
     return signature;
   }
 
@@ -296,6 +324,7 @@ public class DocumentWorkflowService {
     doc.setProjectId(projectId);
     doc.setUserId(userId);
     doc.setStageCode(stage);
+    doc.setTitle(title != null && !title.isBlank() ? title : file.getOriginalFilename());
     doc.setStatus(DocumentStatus.SENT_TO_USER);
     doc.setSentAt(Instant.now());
     doc.setVersion(1);
@@ -313,6 +342,74 @@ public class DocumentWorkflowService {
     audit(doc, ActorType.MANAGER, providerId, AuditAction.MANUAL_UPLOADED, json("title", title));
     audit(doc, ActorType.MANAGER, providerId, AuditAction.SENT, json("reason", "manual-upload"));
     return doc;
+  }
+
+  @Transactional
+  public DocumentInstance uploadStageDocument(UUID projectId, UUID uploaderId, UUID recipientId,
+      UUID stage, MultipartFile file, String title, DocumentGroupType groupType, ActorType uploaderType) {
+    if (file == null || file.isEmpty()) {
+      throw ApiExceptions.badRequest("file is required");
+    }
+    if (projectId == null || stage == null) {
+      throw ApiExceptions.badRequest("projectId and stage are required");
+    }
+    if (recipientId == null) {
+      throw ApiExceptions.badRequest("recipientId is required");
+    }
+
+    DocumentGroup group = resolveGroup(projectId, groupType);
+
+    String fileId;
+    try {
+      fileId = storage.save(BUCKET_DOCUMENTS, file.getInputStream(), file.getSize(),
+          file.getContentType(), file.getOriginalFilename());
+    } catch (IOException e) {
+      throw ApiExceptions.badRequest("Failed to read uploaded file");
+    }
+
+    String finalFileId = fileId;
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCompletion(int status) {
+            if (status == STATUS_ROLLED_BACK) {
+              storage.delete(BUCKET_DOCUMENTS, finalFileId);
+            }
+          }
+        }
+    );
+
+    DocumentInstance doc = new DocumentInstance();
+    doc.setTemplate(null);
+    doc.setGroup(group);
+    doc.setProjectId(projectId);
+    doc.setUserId(recipientId);
+    doc.setStageCode(stage);
+    doc.setTitle(title != null && !title.isBlank() ? title : file.getOriginalFilename());
+    doc.setStatus(DocumentStatus.SENT_TO_USER);
+    doc.setSentAt(Instant.now());
+    doc.setVersion(1);
+    doc.setCurrentFileStorageId(fileId);
+    doc = docRepo.save(doc);
+
+    DocumentFileVersion fv = new DocumentFileVersion();
+    fv.setDocument(doc);
+    fv.setVersion(1);
+    fv.setFileStorageId(fileId);
+    fv.setCreatedByType(uploaderType);
+    fv.setCreatedById(uploaderId);
+    versionRepo.save(fv);
+
+    audit(doc, uploaderType, uploaderId, AuditAction.MANUAL_UPLOADED, json("title", title));
+    audit(doc, uploaderType, uploaderId, AuditAction.SENT, json("reason", "stage-upload"));
+    return doc;
+  }
+
+  public String generatePresignedUrl(UUID documentId, int ttlSeconds) {
+    DocumentInstance doc = docRepo.findById(documentId)
+        .orElseThrow(() -> ApiExceptions.notFound("Document not found"));
+    return storage.generatePresignedUrl(BUCKET_DOCUMENTS, doc.getCurrentFileStorageId(), ttlSeconds)
+        .toString();
   }
 
 
@@ -399,6 +496,20 @@ public class DocumentWorkflowService {
     }
 
     return node;
+  }
+
+  private DocumentGroup resolveGroup(UUID projectId, DocumentGroupType groupType) {
+    if (groupType == null) {
+      return null;
+    }
+    return groupRepo.findByProjectIdAndType(projectId, groupType)
+        .orElseGet(() -> {
+          DocumentGroup group = new DocumentGroup();
+          group.setProjectId(projectId);
+          group.setType(groupType);
+          group.setTitle(groupType.name());
+          return groupRepo.save(group);
+        });
   }
 
   private String escape(String s) {

@@ -4,7 +4,7 @@ server:
 spring:
   application.name: projects
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:projects}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:projects}
     #    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/projects
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
@@ -27,12 +27,26 @@ spring:
         health-check-path: /actuator/health
         health-check-interval: 10s
         instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
-        ip-address: ${HOSTNAME:buildings}
+        ip-address: ${HOSTNAME:projects}
         port: ${server.port}
 
 logging:
   level:
     liquibase: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      access: read_only
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 minio:
   bucket: projects
   access-key: ${PROJECTS_ACCESS_KEY:project-service}

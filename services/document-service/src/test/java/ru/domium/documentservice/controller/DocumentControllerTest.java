@@ -79,6 +79,7 @@ class DocumentControllerTest {
     s1.setId(UUID.randomUUID());
     s1.setDocument(doc);
     s1.setSignerUserId(userId);
+    s1.setSignerType(ActorType.CLIENT);
     s1.setType(SignatureType.SIMPLE);
     s1.setFileHash("hash");
     s1.setSignedAt(Instant.now());
@@ -146,7 +147,7 @@ class DocumentControllerTest {
 
     HttpServletRequest req = mock(HttpServletRequest.class);
 
-    ResponseEntity<Resource> resp = controller.file(docId, true, jwt, req);
+    ResponseEntity<Resource> resp = controller.file(docId, true, false, jwt, req);
 
     assertEquals(200, resp.getStatusCode().value());
     assertEquals(MediaType.APPLICATION_PDF, resp.getHeaders().getContentType());
@@ -182,7 +183,7 @@ class DocumentControllerTest {
 
     HttpServletRequest req = mock(HttpServletRequest.class);
 
-    ResponseEntity<Resource> resp = controller.file(docId, false, jwt, req);
+    ResponseEntity<Resource> resp = controller.file(docId, false, false, jwt, req);
 
     assertEquals(200, resp.getStatusCode().value());
     verify(workflow).loadDocumentFile(docId, false, ActorType.CLIENT, userIdAsSubject);
@@ -211,6 +212,7 @@ class DocumentControllerTest {
     sig.setId(UUID.randomUUID());
     sig.setDocument(doc);
     sig.setSignerUserId(userId);
+    sig.setSignerType(ActorType.CLIENT);
     sig.setType(SignatureType.SIMPLE);
     sig.setSignedAt(Instant.now());
     sig.setFileHash("hash");
@@ -218,6 +220,7 @@ class DocumentControllerTest {
     when(workflow.sign(
         eq(docId),
         eq(userId),
+        eq(ActorType.CLIENT),
         eq(SignatureType.SIMPLE),
         eq("1234"),
         eq("10.0.0.1"),
@@ -230,11 +233,12 @@ class DocumentControllerTest {
     assertEquals(sig.getId(), dto.id());
     assertEquals(docId, dto.documentId());
     assertEquals(userId, dto.signerUserId());
+    assertEquals(ActorType.CLIENT, dto.signerType());
     assertEquals(SignatureType.SIMPLE, dto.type());
     assertEquals("hash", dto.fileHash());
 
     verify(authz).assertCanReadDocument(jwt, doc);
-    verify(workflow).sign(docId, userId, SignatureType.SIMPLE, "1234", "10.0.0.1", "JUnit");
+    verify(workflow).sign(docId, userId, ActorType.CLIENT, SignatureType.SIMPLE, "1234", "10.0.0.1", "JUnit");
   }
 
   // -------------------- reject --------------------

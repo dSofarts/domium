@@ -9,18 +9,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '../../../ui/Sidebar'
+import { Suspense } from 'react'
 import { Logo } from '../Logo'
 
 import { NavMain } from './NavMain'
 import { NavSecondary } from './NavSecondary'
 import { NavUser } from './NavUser'
-import { IUser } from '@/shared/types/user.interface'
-
-const user: IUser = {
-  name: 'Петр',
-  email: 'petr@yandex.ru',
-  avatar: '/avatars/shadcn.jpg'
-}
+import { ProjectSidebarDetails } from './ProjectSidebarDetails'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -42,10 +37,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain />
+        <Suspense fallback={null}>
+          <ProjectSidebarDetails />
+        </Suspense>
         <NavSecondary className='mt-auto' />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )
