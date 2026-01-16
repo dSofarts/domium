@@ -27,7 +27,7 @@ cd services/domium-common
 repositories {
     mavenLocal()
     maven {
-        url = "http://localhost:8081/repository/maven-public/"
+        url = "http://localhost:8080/repository/maven-public/"
     }
     mavenCentral()
 }
@@ -49,7 +49,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8081/realms/domium}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak.localhost:8080/realms/domium}
 ```
 
 Если нужно переопределить значение, добавьте в `application.yaml`:

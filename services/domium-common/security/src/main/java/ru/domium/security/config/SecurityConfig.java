@@ -21,6 +21,7 @@ import ru.domium.security.annotation.PublicEndpoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -43,14 +44,20 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         List<String> permitAllPatterns = new ArrayList<>(properties.getPermitAll());
         permitAllPatterns.addAll(resolvePublicEndpoints());
+        List<String> normalizedPermitAll = permitAllPatterns.stream()
+                .map(SecurityConfig::normalizePattern)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         http
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(permitAllPatterns.toArray(String[]::new)).permitAll()
+                .requestMatchers(normalizedPermitAll.toArray(String[]::new)).permitAll()
                 .anyRequest().authenticated()
             )
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             );
@@ -91,20 +98,39 @@ public class SecurityConfig {
             annotation = method.getDeclaringClass().getAnnotation(PublicEndpoint.class);
         }
         if (annotation != null && annotation.paths().length > 0) {
-            return List.of(annotation.paths());
+            return java.util.Arrays.stream(annotation.paths())
+                    .map(SecurityConfig::normalizePattern)
+                    .toList();
         }
 
         if (info.getPathPatternsCondition() != null) {
             Set<PathPattern> patterns = info.getPathPatternsCondition().getPatterns();
             return patterns.stream()
                     .map(PathPattern::getPatternString)
+                    .map(SecurityConfig::normalizePattern)
                     .collect(Collectors.toList());
         }
         if (info.getPatternsCondition() != null) {
-            return new ArrayList<>(info.getPatternsCondition().getPatterns());
+            return info.getPatternsCondition().getPatterns().stream()
+                    .map(SecurityConfig::normalizePattern)
+                    .toList();
         }
 
         return List.of();
+    }
+
+    private static String normalizePattern(String pattern) {
+        if (pattern == null) {
+            return null;
+        }
+        String trimmed = pattern.trim();
+        if (trimmed.isEmpty()) {
+            return "/";
+        }
+        if (!trimmed.startsWith("/")) {
+            return "/" + trimmed;
+        }
+        return trimmed;
     }
 }
 

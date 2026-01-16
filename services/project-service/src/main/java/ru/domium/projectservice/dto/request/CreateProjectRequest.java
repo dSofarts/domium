@@ -43,6 +43,8 @@ public class CreateProjectRequest {
     @Size(max = 2000, message = "Описание не должно превышать 2000 символов")
     private String description;
 
+    private java.util.UUID workflowId;
+
     @Valid
     @NotEmpty(message = "Список этажей не может быть пустым")
     private List<CreateFloorRequest> floors = new ArrayList<>();

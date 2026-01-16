@@ -15,11 +15,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -183,6 +185,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGeneric(Exception ex,
                                                        HttpServletRequest request) {
+        log.error("Unhandled error in request {}", request.getRequestURI(), ex);
         ProblemDetail problem = baseProblem(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Internal server error",

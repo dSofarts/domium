@@ -5,9 +5,11 @@ import ru.domium.documentservice.exception.ApiExceptions;
 import io.minio.*;
 import io.minio.http.Method;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -15,9 +17,12 @@ import org.springframework.stereotype.Service;
 public class MinioFileStorageService implements FileStorageService {
 
   private final MinioClient minio;
+  private final String publicUrl;
 
-  public MinioFileStorageService(MinioClient minio) {
+  public MinioFileStorageService(MinioClient minio,
+                                 @Value("${minio.public-url:}") String publicUrl) {
     this.minio = minio;
+    this.publicUrl = publicUrl == null ? "" : publicUrl.trim();
   }
 
   @Override
@@ -47,6 +52,22 @@ public class MinioFileStorageService implements FileStorageService {
   }
 
   @Override
+  public FileObject loadWithMetadata(String bucket, String fileStorageId) {
+    try {
+      StatObjectResponse stat = minio.statObject(
+          StatObjectArgs.builder().bucket(bucket).object(fileStorageId).build()
+      );
+      String contentType = stat.contentType();
+      InputStream stream = minio.getObject(
+          GetObjectArgs.builder().bucket(bucket).object(fileStorageId).build()
+      );
+      return new FileObject(stream, contentType);
+    } catch (Exception e) {
+      throw ApiExceptions.notFound("File not found in storage: " + fileStorageId);
+    }
+  }
+
+  @Override
   public URL generatePresignedUrl(String bucket, String fileStorageId, int ttlSeconds) {
     try {
       String url = minio.getPresignedObjectUrl(
@@ -56,7 +77,21 @@ public class MinioFileStorageService implements FileStorageService {
               .method(Method.GET)
               .expiry(ttlSeconds)
               .build());
-      return new URL(url);
+      URL signedUrl = new URL(url);
+      if (publicUrl.isBlank()) {
+        return signedUrl;
+      }
+      URI base = new URI(publicUrl);
+      URI rewritten = new URI(
+          base.getScheme(),
+          base.getUserInfo(),
+          base.getHost(),
+          base.getPort(),
+          signedUrl.getPath(),
+          signedUrl.getQuery(),
+          null
+      );
+      return rewritten.toURL();
     } catch (Exception e) {
       throw ApiExceptions.badRequest("Failed to generate presigned url: " + e.getMessage());
     }

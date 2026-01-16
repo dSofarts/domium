@@ -95,7 +95,7 @@ services:
     image: grafana/grafana:10.3.1
     container_name: grafana
     ports:
-      - "${GF_PORT}:3000"
+      - "${GF_PORT:-3001}:3000"
     depends_on:
       prometheus:
         condition: service_healthy
@@ -151,7 +151,7 @@ services:
     container_name: keycloak
     command: start-dev --metrics-enabled=true --import-realm
     ports:
-      - "${KEYCLOAK_PORT:-8081}:8081"
+      - "${KEYCLOAK_PORT:-8080}:8080"
       - "${KEYCLOAK_HEALTH_PORT:-9000}:9000"
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
@@ -162,13 +162,17 @@ services:
       KC_DB_PASSWORD: ${KEYCLOAK_POSTGRES_PASSWORD}
       KC_METRICS_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_HTTP_PORT: "8081"
-      KC_HOSTNAME: keycloak
+      KC_HTTP_PORT: "8080"
+      KC_HOSTNAME: keycloak.localhost
       KC_HOSTNAME_PORT: "8080"
-      KC_HOSTNAME_URL: http://keycloak:8080
+      KC_HOSTNAME_URL: http://keycloak.localhost:8080
       KC_HOSTNAME_STRICT: "true"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_RELATIVE_PATH: /
+    networks:
+      default:
+        aliases:
+          - keycloak.localhost
     volumes:
       - ./infra/keycloak/domium-realm.json:/opt/keycloak/data/import/domium-realm.json
     depends_on:
@@ -204,31 +208,31 @@ services:
       context: ./services/api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      KEYCLOAK_ISSUER_URI: http://keycloak:8081/realms/domium
-      KEYCLOAK_INTERNAL_URL: http://keycloak:8081
+      KEYCLOAK_ISSUER_URI: http://keycloak.localhost:8080/realms/domium
+      KEYCLOAK_INTERNAL_URL: http://keycloak.localhost:8080
       CONSUL_HOST: consul
       CONSUL_PORT: 8500
     depends_on:
       consul:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8090/actuator/health" ]
       interval: ${HEALTHCHECK_INTERVAL}
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
 
-  domium-building:
-    image: domium-building:latest
-    container_name: domium-building
+  building-service:
+    image: building-service:latest
+    container_name: building-service
     ports:
       - "${BUILDING_PORT}:8091"
       - "5005:5005"
     build:
       context: ./services
-      dockerfile: domium-building/Dockerfile
+      dockerfile: building-service/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      KEYCLOAK_ISSUER_URI: http://keycloak:8081/realms/domium
+      KEYCLOAK_ISSUER_URI: http://keycloak.localhost:8080/realms/domium
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${BUILDING_POSTGRES_DB}
@@ -237,6 +241,10 @@ services:
       CONSUL_HOST: consul
       CONSUL_PORT: 8500
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      VIDEO_HLS_ROOT: /var/domium/video/hls
+      # Увеличиваем длительность буфера HLS, чтобы плейлист не "заканчивался" за 3–4 секунды
+      VIDEO_HLS_TIME_SECONDS: 2
+      VIDEO_HLS_LIST_SIZE: 10
     depends_on:
       consul:
         condition: service_healthy
@@ -247,6 +255,76 @@ services:
       interval: ${HEALTHCHECK_INTERVAL}
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
+    volumes:
+      - video_data:/var/domium/video
+
+  chat-service:
+    image: chat-service:latest
+    container_name: chat-service
+    build:
+      context: ./services
+      dockerfile: chat-service/Dockerfile
+    ports:
+      - "${CHAT_PORT:-8085}:8085"
+      - "${CHAT_RSOCKET_PORT:-18085}:18085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: http://keycloak.localhost:8080/realms/domium
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      consul:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  video-nginx:
+    image: nginx:1.27-alpine
+    container_name: video-nginx
+    ports:
+      - "${VIDEO_NGINX_PORT:-8088}:8088"
+    volumes:
+      - ./infra/nginx-video/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx-video/test:/usr/share/nginx/html/video-test:ro
+      - video_data:/var/domium/video:ro
+    depends_on:
+      building-service:
+        condition: service_healthy
+
+  # RTSP-камера для тестов (эмуляция), транслирует в rtsp://rtsp-server:8554/test
+  rtsp-server:
+    image: bluenviron/mediamtx:latest
+    container_name: rtsp-server
+    ports:
+      - "8554:8554" # RTSP для хоста (VLC/ffplay): rtsp://localhost:8554/test
+      - "8888:8888" # Web (опционально): http://localhost:8888/
+    volumes:
+      - ./infra/rtsp-test/mediamtx.yml:/mediamtx.yml:ro
+    command: /mediamtx.yml
+
+  # публикация тестового RTSP из видеофайла (положите файл в ./infra/rtsp-test/media/)
+  # Пример: ./infra/rtsp-test/media/sample.mp4
+  rtsp-publisher-file:
+    image: linuxserver/ffmpeg:latest
+    container_name: rtsp-publisher-file
+    depends_on:
+      - rtsp-server
+    restart: unless-stopped
+    volumes:
+      - ./infra/rtsp-test/media:/media:ro
+    command: >
+      -hide_banner -loglevel warning
+      -stream_loop -1 -re
+      -i /media/sample.mp4
+      -an
+      -c:v libx264 -preset veryfast -tune zerolatency -pix_fmt yuv420p
+      -g 50 -keyint_min 50 -sc_threshold 0
+      -f rtsp -rtsp_transport tcp rtsp://rtsp-server:8554/test
 
   project-service:
     image: project-service:latest
@@ -264,7 +342,7 @@ services:
       POSTGRES_DB: ${PROJECTS_POSTGRES_DB}
       POSTGRES_USER: ${PROJECTS_POSTGRES_USER}
       POSTGRES_PASSWORD: ${PROJECTS_POSTGRES_PASSWORD}
-      KEYCLOAK_ISSUER_URI: http://keycloak:8081/realms/domium
+      KEYCLOAK_ISSUER_URI: http://keycloak.localhost:8080/realms/domium
       CONSUL_HOST: consul
       CONSUL_PORT: 8500
       MINIO_HOST: minio
@@ -293,15 +371,16 @@ services:
       DOCUMENT_PORT: 8092
       CONSUL_HOST: consul
       CONSUL_PORT: 8500
-      KEYCLOAK_ISSUER_URI: http://keycloak:8081/realms/domium
+      KEYCLOAK_ISSUER_URI: http://keycloak.localhost:8080/realms/domium
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_DB: postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      DOCUMENT_POSTGRES_DB: ${DOCUMENT_POSTGRES_DB:-document}
+      DOCUMENT_POSTGRES_USER: ${DOCUMENT_POSTGRES_USER:-postgres}
+      DOCUMENT_POSTGRES_PASSWORD: ${DOCUMENT_POSTGRES_PASSWORD:-postgres}
+      MINIO_API_PORT: ${MINIO_API_PORT}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
     depends_on:
       consul:
         condition: service_healthy
@@ -312,9 +391,22 @@ services:
       minio-init:
         condition: service_completed_successfully
 
+  domium-ui:
+    image: domium-ui:latest
+    container_name: domium-ui
+    build:
+      context: ./domium-ui
+      args:
+        NEXT_PUBLIC_KEYCLOAK_URL: http://keycloak.localhost:${KEYCLOAK_PORT:-8080}
+    ports:
+      - "${DOMIUM_UI_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+
 volumes:
   grafana-storage:
   minio_data:
   postgres_data:
   redis_insight_data:
   consul_data:
+  video_data:

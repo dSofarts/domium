@@ -2,6 +2,7 @@ package ru.domium.documentservice.security;
 
 import ru.domium.documentservice.exception.ApiExceptions;
 import ru.domium.documentservice.model.DocumentInstance;
+import ru.domium.documentservice.repository.DocumentFileVersionRepository;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import ru.domium.security.util.SecurityUtils;
@@ -9,6 +10,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 @Component
 public class AuthorizationService {
+
+  private final DocumentFileVersionRepository versionRepo;
+
+  public AuthorizationService(DocumentFileVersionRepository versionRepo) {
+    this.versionRepo = versionRepo;
+  }
 
   public void assertCanReadDocument(Jwt jwt, DocumentInstance doc) {
     if (jwt == null) throw ApiExceptions.forbidden("Unauthenticated");
@@ -18,6 +25,9 @@ public class AuthorizationService {
       throw ApiExceptions.forbidden("Unauthenticated");
     UUID uid = UUID.fromString(currentUserId);
     if (doc.getUserId() == null || !uid.equals(doc.getUserId())) {
+      if (versionRepo.existsByDocument_IdAndCreatedById(doc.getId(), uid)) {
+        return;
+      }
       throw ApiExceptions.forbidden("Access denied");
     }
   }

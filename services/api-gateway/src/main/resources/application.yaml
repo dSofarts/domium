@@ -17,6 +17,31 @@ spring:
     gateway:
       server:
         webflux:
+          routes:
+            - id: api-projects-root
+              uri: lb://projects
+              predicates:
+                - Path=/api/projects
+              filters:
+                - SetPath=/
+            - id: api-projects
+              uri: lb://projects
+              predicates:
+                - Path=/api/projects/**
+              filters:
+                - StripPrefix=2
+            - id: api-documents
+              uri: lb://documents
+              predicates:
+                - Path=/api/document-service/**
+              filters:
+                - StripPrefix=2
+            - id: api-chat
+              uri: lb://chat-service
+              predicates:
+                - Path=/api/chat-service/**
+              filters:
+                - StripPrefix=2
           globalcors:
             cors-configurations:
               '[/**]':
@@ -53,7 +78,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/domium}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak.localhost:8080/realms/domium}
 
 management:
   endpoints:
@@ -87,6 +112,9 @@ gateway:
       - /swagger-ui.html
       - /v3/api-docs/**
       - /webjars/**
+      - /api/projects
+      - /api/projects/**
+      - /api/buildings/*/video
   server:
     url: http://localhost:8090
 

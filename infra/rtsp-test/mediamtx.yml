@@ -1,0 +1,7 @@
+logLevel: info
+
+# Путь "test" принимает publisher (ffmpeg) и отдаёт viewer'ам (ваш building-service).
+paths:
+  test:
+    source: publisher
+

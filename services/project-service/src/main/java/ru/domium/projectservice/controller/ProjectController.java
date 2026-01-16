@@ -19,6 +19,7 @@ import ru.domium.projectservice.dto.request.CreateProjectRequest;
 import ru.domium.projectservice.dto.request.UpdateProjectRequest;
 import ru.domium.projectservice.dto.response.ProjectResponse;
 import ru.domium.projectservice.service.ProjectService;
+import ru.domium.security.annotation.PublicEndpoint;
 import ru.domium.security.util.SecurityUtils;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ProjectResponse.class))
             )
     })
+    @PublicEndpoint
     @GetMapping
     public ResponseEntity<List<ProjectResponse>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
@@ -60,6 +62,7 @@ public class ProjectController {
             ),
             @ApiResponse(responseCode = "404", description = "Проект не найден")
     })
+    @PublicEndpoint
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> getProjectById(
             @Parameter(description = "ID проекта", required = true, example = "123e4567-e89b-12d3-a456-426614174000")

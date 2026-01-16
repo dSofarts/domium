@@ -1,4 +1,4 @@
-import { ProjectStatus } from '../enums.type'
+import { ProjectFlowStage, ProjectStatus } from '../enums.type'
 import { IProject } from '../types/project.interface'
 
 export const PROJECTS: IProject[] = [
@@ -9,8 +9,35 @@ export const PROJECTS: IProject[] = [
     managerId: 'Михаил Иванов',
     name: 'Деревянный дом',
     stage: ProjectStatus.IN_PROGRESS,
+    flowStage: ProjectFlowStage.BUILD,
     progress: 19,
-    videoUrl: 'https://example.com/video1',
+    videoUrl: 'https://www.youtube.com/embed/cPqNOWC63mI',
+    documents: [
+      {
+        id: 'doc-1',
+        name: 'Договор подряда.pdf',
+        status: 'APPROVED',
+        category: 'DOCS'
+      },
+      {
+        id: 'doc-2',
+        name: 'Техническое задание.pdf',
+        status: 'APPROVED',
+        category: 'DOCS'
+      },
+      {
+        id: 'doc-3',
+        name: 'Акт выполненных работ.pdf',
+        status: 'PENDING',
+        category: 'FINAL'
+      },
+      {
+        id: 'doc-4',
+        name: 'Акт приема-передачи.pdf',
+        status: 'PENDING',
+        category: 'FINAL'
+      }
+    ],
     updatedAt: '2024-06-01T12:00:00Z'
   }
 ]

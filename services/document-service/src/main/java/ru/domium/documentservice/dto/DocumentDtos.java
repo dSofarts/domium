@@ -18,6 +18,7 @@ public final class DocumentDtos {
       UUID projectId,
       UUID userId,
       UUID stageCode,
+      String title,
       DocumentStatus status,
       int version,
       Instant createdAt,
@@ -34,7 +35,7 @@ public final class DocumentDtos {
 
   public record CommentDto(UUID id, UUID documentId, CommentAuthorType authorType, UUID authorId, String text, Instant createdAt) {}
 
-  public record SignatureDto(UUID id, UUID documentId, UUID signerUserId, SignatureType type, Instant signedAt, JsonNode signaturePayloadJson, String fileHash) {}
+  public record SignatureDto(UUID id, UUID documentId, UUID signerUserId, ActorType signerType, SignatureType type, Instant signedAt, JsonNode signaturePayloadJson, String fileHash) {}
 
   public record AuditDto(UUID id, UUID documentId, ActorType actorType, UUID actorId, AuditAction action, JsonNode payloadJson, Instant createdAt) {}
 

@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
+import ru.domium.chat.api.request.ChatAccessRequest
 import ru.domium.chat.api.request.HistoryRequestWithUser
 import ru.domium.chat.api.request.MessageRequest
 import ru.domium.chat.entity.Message
@@ -26,21 +27,15 @@ class ChatRSocketController(
     }
 
     @MessageMapping("subscribe")
-    fun subscribe(
-        chatId: String,
-        userId: String,
-    ): Flow<Message> {
-        runBlocking { chatService.checkAccess(chatId, userId) }
-        return messageService.subscribe(chatId)
+    fun subscribe(request: ChatAccessRequest): Flow<Message> {
+        runBlocking { chatService.checkAccess(request.chatId, request.userId) }
+        return messageService.subscribe(request.chatId)
     }
 
     @MessageMapping("history")
-    suspend fun history(
-        chatId: String,
-        userId: String,
-    ): List<Message> {
-        chatService.checkAccess(chatId, userId)
-        return messageService.getHistory(chatId)
+    suspend fun history(request: ChatAccessRequest): List<Message> {
+        chatService.checkAccess(request.chatId, request.userId)
+        return messageService.getHistory(request.chatId)
     }
 
     @MessageMapping("loadHistory")

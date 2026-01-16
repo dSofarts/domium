@@ -833,10 +833,14 @@
       "secret": "FaxzBgk7pkyattBrV8MlVCVg80jjZKo5",
       "redirectUris": [
         "http://localhost:8091/actuator",
+        "http://localhost:3000/*",
+        "http://domium-ui:3000/*",
         "https://oauth.pstmn.io/v1/callback"
       ],
       "webOrigins": [
-        "http://localhost:8091"
+        "http://localhost:8091",
+        "http://localhost:3000",
+        "http://domium-ui:3000"
       ],
       "notBefore": 0,
       "bearerOnly": false,

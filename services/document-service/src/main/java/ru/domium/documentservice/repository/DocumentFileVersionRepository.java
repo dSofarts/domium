@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DocumentFileVersionRepository extends JpaRepository<DocumentFileVersion, UUID> {
   List<DocumentFileVersion> findAllByDocument_IdOrderByVersionDesc(UUID documentId);
   long countByDocument_Id(UUID documentId);
+  boolean existsByDocument_IdAndCreatedById(UUID documentId, UUID createdById);
 }

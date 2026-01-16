@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,6 +21,7 @@ import java.util.*;
 import org.springframework.web.bind.annotation.*;
 import ru.domium.openapi.config.DomiumOpenApiAutoConfiguration;
 import ru.domium.security.util.SecurityUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(
     name = "Project / Documents",
@@ -89,5 +91,46 @@ public class ProjectDocumentsController {
       docs = workflow.listProjectDocumentsForUser(projectId, userId, status, stage, groupType);
     }
     return docs.stream().map(DocumentMapper::toDto).toList();
+  }
+
+  @Operation(
+      summary = "Загрузить документ этапа (CLIENT/MANAGER)",
+      description = """
+        Загрузка документа, привязанного к этапу строительства.
+        Документ отправляется получателю для подписи.
+        """
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Документ загружен"),
+      @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
+      @ApiResponse(responseCode = "403", description = "Недостаточно прав")
+  })
+  @PreAuthorize("hasAnyRole('CLIENT','MANAGER')")
+  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public DocumentInstanceDto upload(@PathVariable UUID projectId,
+      @RequestPart("file") MultipartFile file,
+      @RequestParam("stageId") UUID stageId,
+      @RequestParam("recipientId") UUID recipientId,
+      @RequestParam(name = "title", required = false) String title,
+      @RequestParam(name = "kind", required = false, defaultValue = "STAGE") String kind,
+      @AuthenticationPrincipal Jwt jwt) {
+    UUID uploaderId = UUID.fromString(SecurityUtils.getCurrentUserId(jwt));
+    boolean isManager = (hasRole(jwt, "manager") || hasRole(jwt, "admin"));
+    ActorType actorType = isManager ? ActorType.MANAGER : ActorType.CLIENT;
+    DocumentGroupType groupType = "PHOTO".equalsIgnoreCase(kind)
+        ? DocumentGroupType.PHOTO_REPORTS
+        : DocumentGroupType.STAGE_DOCS;
+
+    var doc = workflow.uploadStageDocument(
+        projectId,
+        uploaderId,
+        recipientId,
+        stageId,
+        file,
+        title,
+        groupType,
+        actorType
+    );
+    return DocumentMapper.toDto(doc);
   }
 }

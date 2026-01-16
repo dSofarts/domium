@@ -7,7 +7,10 @@ export const PUBLIC_PROJECTS: IPublicProject[] = [
     description: 'Описание проекта',
     image:
       'https://static.tildacdn.com/tild3133-6139-4834-a236-333936663239/default.jpg',
-    price: 28790000
+    price: 28790000,
+    videoUrl: 'https://www.youtube.com/embed/cPqNOWC63mI',
+    managerId: 'd2e3f4a5-b6c7-8901-def2-234567890123',
+    managerName: 'Test Manager'
   },
   {
     id: '175909e8-628f-48f3-9b3d-51628df03cd7',
@@ -15,6 +18,9 @@ export const PUBLIC_PROJECTS: IPublicProject[] = [
     description: 'Описание проекта',
     image:
       'https://static.tildacdn.com/tild6366-3933-4934-b539-666532343662/DSC02624-1.jpg',
-    price: 29990000
+    price: 29990000,
+    videoUrl: 'https://www.youtube.com/embed/pL0G8J4sI1U',
+    managerId: 'd2e3f4a5-b6c7-8901-def2-234567890123',
+    managerName: 'Test Manager'
   }
 ]

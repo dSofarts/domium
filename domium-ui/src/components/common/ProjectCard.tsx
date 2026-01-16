@@ -8,7 +8,7 @@ import { PAGES } from '@/config/pages.config'
 import { Badge } from '../ui/Badge'
 import { Progress } from '../ui/Progress'
 
-import { ProjectStatusLabel } from '@/shared/enums.type'
+import { ProjectFlowStageLabel, ProjectStatusLabel } from '@/shared/enums.type'
 import { IProject } from '@/shared/types/project.interface'
 
 interface ProjectProps {
@@ -31,6 +31,10 @@ export function ProjectCard({ project }: ProjectProps) {
       <div className='flex justify-between'>
         <h3 className='font-bold text-xl'>{project.name}</h3>
         <Badge>{ProjectStatusLabel[project.stage]}</Badge>
+      </div>
+
+      <div className='mt-2 text-sm text-muted-foreground'>
+        Этап: {ProjectFlowStageLabel[project.flowStage]}
       </div>
 
       <div className='flex gap-3 items-center mt-5'>

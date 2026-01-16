@@ -145,7 +145,7 @@ public class OpenApiAggregationController {
         
         if (instances.isEmpty()) {
             log.debug("No instances found for service: {}", serviceName);
-            return Mono.empty();
+            return fetchApiDocsViaGateway(serviceName);
         }
 
         ServiceInstance instance = instances.get(0);
@@ -170,8 +170,31 @@ public class OpenApiAggregationController {
                 .timeout(java.time.Duration.ofSeconds(5))
                 .onErrorResume(error -> {
                     log.debug("Service {} does not provide API docs or is unavailable: {}", serviceName, error.getMessage());
-                    return Mono.empty();
+                    return fetchApiDocsViaGateway(serviceName);
                 });
+    }
+
+    private Mono<JsonNode> fetchApiDocsViaGateway(String serviceName) {
+        String url = gatewayServerUrl + "/api/" + serviceName.toLowerCase() + "/v3/api-docs";
+        log.debug("Fetching API docs via gateway for service: {} at {}", serviceName, url);
+        return webClient.get()
+            .uri(url)
+            .retrieve()
+            .bodyToMono(String.class)
+            .flatMap(json -> {
+                try {
+                    JsonNode doc = objectMapper.readTree(json);
+                    return Mono.just(rewriteDocForGateway(doc, serviceName));
+                } catch (Exception e) {
+                    log.error("Error parsing JSON from gateway for service: {}", serviceName, e);
+                    return Mono.just(objectMapper.createObjectNode());
+                }
+            })
+            .timeout(java.time.Duration.ofSeconds(5))
+            .onErrorResume(error -> {
+                log.debug("Gateway fallback failed for service {}: {}", serviceName, error.getMessage());
+                return Mono.empty();
+            });
     }
 
     private JsonNode rewriteDocForGateway(JsonNode doc, String serviceName) {

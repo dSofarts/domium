@@ -1,4 +1,0 @@
-rootProject.name = 'domium-building'
-
-include 'api'
-include 'app'

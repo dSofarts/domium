@@ -15,7 +15,7 @@ public class DomiumSecurityEnvironmentPostProcessor implements EnvironmentPostPr
         String issuerUri = environment.getProperty("spring.security.oauth2.resourceserver.jwt.issuer-uri");
         if (issuerUri == null || issuerUri.isBlank()) {
             String defaultIssuerUri = environment.getProperty("KEYCLOAK_ISSUER_URI", 
-                "http://keycloak:8081/realms/domium");
+                "http://keycloak.localhost:8080/realms/domium");
             
             Map<String, Object> props = new HashMap<>();
             props.put("spring.security.oauth2.resourceserver.jwt.issuer-uri", defaultIssuerUri);
